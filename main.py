@@ -103,10 +103,10 @@ def msg_user(message):
     print('Сообщение получено', message1)
     text_message = message1
     if text_message == "Прочитано":
-        func.reading(user_id = user_id, day = message1)
+        #func.reading(user_id = user_id, day = message1)
         bot.send_message(message.from_user.id, 'Молодец!')
     elif text_message == "прочитано":
-        func.reading(user_id = user_id, day = message1)
+        #func.reading(user_id = user_id, day = message1)
         bot.send_message(message.from_user.id, 'Молодец!')
     else:
         info = func.msg_plan(day_input=text_message)
