@@ -64,32 +64,7 @@ def start(message: types.Message):
         bot.send_message(message.chat.id, ' {}, вы авторизованы!'.format(message.from_user.first_name),
                          reply_markup=kb.admin)
 
-#Функции бота
-# @bot.callback_query_handler(func=lambda call: True)   
-# def handler_call(call):
-#     chat_id = call.message.chat.id
-#     message_id = call.message.message_id
-#     if call.data == 'statistics':
-#             bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=func.stats(), reply_markup=kb.admin)
-#     elif call.data == 'message':
-#         msg = bot.send_message(chat_id=chat_id,
-#                                text='Введите текст для рассылки. \n\nДля отмены напишите "-" без кавычек!')
-#         bot.register_next_step_handler(msg, message1)
-# def message1(message):
-#     text = message.text
-#     if message.text.startswith('-'):
-#         bot.send_message(message.chat.id, text=cancel_operation)
-#     else:
-#         info = func.admin_message(text)
-#         bot.send_message(message.chat.id, text=' Рассылка начата!')
-#         for i in range(len(info)):
-#             try:
-#                 time.sleep(1)
-#                 bot.send_message(info[i][0], str(text))
-#             except:
-#                 pass
-#         bot.send_message(message.chat.id, text=' Рассылка завершена!')
-#         print (info)
+
 
 
 # Основная функция бота
