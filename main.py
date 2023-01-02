@@ -89,7 +89,7 @@ def msg_user(message):
     if message.text == 'Что читаем сегодня?':
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         message1 = tconv(message.date)
-        print('Пишет', user_name)
+        print('Запрос на чтение сегодняшнего дня ', user_name)
         text_message = message1
         global day
         day = text_message
@@ -107,6 +107,7 @@ def msg_user(message):
         print('Конец сессии')
         bot.register_next_step_handler(result_msg, reading)
     elif message.text == 'Отчет':
+        print('Запрос отчета от ', user_name)
         read_data = func.whats_read(user_id = user_id)
         # print('MAIN получен список прочитанного ', read_data)
         text = ''.join([f'{read_data}' for read_data in read_data])
@@ -137,6 +138,7 @@ def msg_user(message):
             bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read}\n\nВы отстаете на *{lag}* дней', parse_mode= "Markdown")
             bot.send_message(message.from_user.id, 'Чтобы прочитать пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.input_read)
     elif message.text == 'Ввести день вручную':
+        print('Вводит день вручную', user_name)
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today = tconv(message.date)
         today = func.addiction(day = today)

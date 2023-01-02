@@ -52,13 +52,13 @@ def msg_plan(day_input):
     cursor = conn.cursor()
     cursor.execute(f'SELECT read FROM plan WHERE day = "{day_input}"')
     row = cursor.fetchall()
-    print('FUNC данные в таблице получены ', row)
+    # print('FUNC данные в таблице получены ', row)
     return row
     print(row)
     conn.close()
 
 def user_input(value):
-    print('FUNC получена инфа о ручном вводе дня', value)
+    # print('FUNC получена инфа о ручном вводе дня', value)
     conn = sqlite3.connect(db)
     q = conn.cursor()
     q = q.execute(f'SELECT day FROM addiction WHERE value = "{value}"')
@@ -68,12 +68,12 @@ def user_input(value):
     conn.close()
 
 def value_plan(value_input):
-    print('FUNC получена инфа о дне в БД', value_input)
+    # print('FUNC получена инфа о дне в БД', value_input)
     conn = sqlite3.connect(db)
     q = conn.cursor()
     q = q.execute(f'SELECT read FROM plan WHERE day IS '+str(value_input))
     value_plan = q.fetchone()
-    print('FUNC передаю инфу из плана', value_plan)
+    # print('FUNC передаю инфу из плана', value_plan)
     return value_plan
     conn.close()
 
