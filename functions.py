@@ -12,6 +12,7 @@ import telebot
 import config as config
 from config import db, TOKEN
 import re
+import numpy
 
 def first_join(user_id, username):
     connection = sqlite3.connect(db)
@@ -57,23 +58,22 @@ def msg_plan(day_input):
     conn.close()
 
 def user_input(value):
-    # print('FUNC получена инфа о ручном вводе дня', value)
+    print('FUNC получена инфа о ручном вводе дня', value)
     conn = sqlite3.connect(db)
     q = conn.cursor()
     q = q.execute(f'SELECT day FROM addiction WHERE value = "{value}"')
     value_input = q.fetchone()
-    # value_input = value_input
     value_input = re.sub("[)|(|,)]", "", str(value_input))
     return value_input
     conn.close()
 
 def value_plan(value_input):
-    # print('FUNC получена инфа о дне в БД', value_input)
+    print('FUNC получена инфа о дне в БД', value_input)
     conn = sqlite3.connect(db)
     q = conn.cursor()
     q = q.execute(f'SELECT read FROM plan WHERE day IS '+str(value_input))
     value_plan = q.fetchone()
-    # print('FUNC передаю инфу из плана', value_plan)
+    print('FUNC передаю инфу из плана', value_plan)
     return value_plan
     conn.close()
 
@@ -107,6 +107,16 @@ def whats_read(user_id):
     # print('FUNC передаю инфу польователю ', whats_read_data)
     return whats_read_data
     conn.close()
+def stat_reading(today, text):
+    # print('FUNC получен список прочитанных дней', text)
+    # print('FUNC получен номер дня', today)
+    statistics = sorted(set(map(str, range(0,int(today)+1))).difference(text))
+    # print('FUNC вывожу инфу о пропущенных днях ', statistics)
+    statistics = ', '.join([f'{statistics}' for statistics in statistics])
+    return statistics
+
+
+
 
 
     # Запись в Google Sheet Bot

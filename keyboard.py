@@ -14,8 +14,8 @@ admin.add(
 menu = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 menu.add(
     types.InlineKeyboardButton('Что читаем сегодня?', callback_data='whats_read'),
-    types.InlineKeyboardButton('Прочитанное', callback_data='reading'),
-    types.InlineKeyboardButton('Ввести день вручную', callback_data='input_day')
+    types.InlineKeyboardButton('Отчет', callback_data='reading'),
+    types.InlineKeyboardButton('Канал НБЦ', callback_data='nbc')
 )
 
 read = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
