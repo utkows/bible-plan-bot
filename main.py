@@ -192,7 +192,7 @@ def handler_call(call):
     elif call.data == 'admin_msg':
             chat_id = call.message.chat.id
             text = call.message.text
-            msg = bot.send_message(chat_id=chat_id, text='Введите текст для рассылки. \n\nДля отмены нажми Назад', reply_markup=kb.back)
+            msg = bot.send_message(chat_id=chat_id, text='Введите текст для рассылки. \n\nДля отмены нажми Назад без кавычек!', reply_markup=kb.back)
             bot.register_next_step_handler(msg, message1)
 
 def message1(message):
