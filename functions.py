@@ -78,13 +78,13 @@ def value_plan(value_input):
 
 def addiction(day):
     day = day.replace("'", "")
-    # print('FUNC получена инфа о дне', day)
+    print('FUNC получена инфа о дне', day)
     conn = sqlite3.connect(db)
     q = conn.cursor()
     q = q.execute(f'SELECT value FROM addiction WHERE day = "{day}"')
     global value_day
     value_day = q.fetchone()
-    # print('FUNC дню присвоено значение ', value_day)
+    print('FUNC дню присвоено значение ', value_day)
     return value_day
     conn.close()
     
@@ -96,7 +96,7 @@ def reading(user_id):
     if row is None:
         q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, value_day))
         conn.commit()
-        # print('FUNC данные о прочтении записаны ', user_id, value_day)
+        print('FUNC данные о прочтении записаны ', user_id, value_day)
     conn.close()
 
 def whats_read(user_id):
