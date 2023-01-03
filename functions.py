@@ -91,7 +91,7 @@ def addiction(day):
 def reading(user_id):
     conn = sqlite3.connect(db)
     q = conn.cursor()
-    q = q.execute(f'SELECT * FROM reading WHERE day = "{value_day}"')
+    q = q.execute(f'SELECT * FROM reading WHERE day = "{value_day}" AND user_id = {user_id}')
     row = q.fetchone()
     if row is None:
         q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, value_day))

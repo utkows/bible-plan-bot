@@ -149,7 +149,7 @@ def input_day(message):
             if i.isdigit() is not True:
                 bot.send_message(message.chat.id, "Введите корректный номер!", reply_markup=kb.input_read)
             else:
-                value_input = func.user_input(value=text)
+                value_input = func.user_input(value = text)
                 value = func.value_plan(value_input = value_input)
                 msg = bot.send_message(message.from_user.id, value, reply_markup=kb.read)
                 bot.register_next_step_handler(msg, reading_input)
