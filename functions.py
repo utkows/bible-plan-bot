@@ -54,7 +54,6 @@ def msg_plan(day_input):
     row = cursor.fetchall()
     # print('FUNC данные в таблице получены ', row)
     return row
-    print(row)
     conn.close()
 
 def user_input(value):
@@ -92,17 +91,19 @@ def addiction(day):
 def reading(user_id):
     conn = sqlite3.connect(db)
     q = conn.cursor()
-    q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, value_day))
-    # print('FUNC данные о прочтении записаны ', user_id, value_day)
-    conn.commit()
+    q = q.execute(f'SELECT * FROM reading WHERE day = "{value_day}"')
+    row = q.fetchone()
+    if row is None:
+        q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, value_day))
+        conn.commit()
+        # print('FUNC данные о прочтении записаны ', user_id, value_day)
     conn.close()
-
 
 def whats_read(user_id):
     # print('FUNC получен запрос на список прочитанного от ', user_id)
     conn = sqlite3.connect(db)
     q = conn.cursor()
-    q = q.execute(f'SELECT day FROM reading WHERE user_id = "{user_id}"')
+    q = q.execute(f'SELECT day FROM reading WHERE user_id = "{user_id}" ORDER BY day')
     whats_read_data = q.fetchall()
     # print('FUNC передаю инфу польователю ', whats_read_data)
     return whats_read_data

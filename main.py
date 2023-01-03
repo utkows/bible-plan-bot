@@ -40,37 +40,6 @@ def get_text_message(message):
     func.first_join(user_id=chat_id, username=username)
     bot.send_message(message.from_user.id, 'Привет!\nЯ - бот НБЦ для чтения Библии по плану.\n\nКраткая инструкция:\n- "Что читаем сегодня?" - нажмите чтобы узнать что читаем сегодня по плану.\n- "Отчет" - нажмите чтобы увидеть отчет о пропущенных днях.\n\nЕсли понадобится помощь - пишите сюда: @utkows', reply_markup=kb.menu)
 
-# Рассылка
-@bot.message_handler(commands=['send'])
-def message1(message):
-    print('MAIN получена комманда на рассылку')
-    admins = [316920734]
-    chat_id = message.chat.id
-    text = message.text
-    command_sender = message.from_user.id
-    if command_sender in admins:
-        print('MAIN команда от админа')
-        msg = bot.send_message(chat_id=chat_id, text='Введите текст для рассылки. \n\nДля отмены нажми Назад без кавычек!', reply_markup=kb.back)
-        bot.register_next_step_handler(msg, message1)
-    else:
-        print('MAIN команда НЕ от админа')
-        bot.send_message(command_sender, f'Не выйдет, извини :(')
-def message1(message):
-    text = message.text
-    if message.text == 'Назад':
-            bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
-    else:
-        info = func.admin_message(text)
-        bot.send_message(message.chat.id, text=' Рассылка начата!')
-        for i in range(len(info)):
-            try:
-                time.sleep(1)
-                bot.send_message(info[i][0], str(text))
-            except:
-                pass
-        bot.send_message(message.chat.id, text=' Рассылка завершена!')
-        print (info)
-
 # Вызов Админ Панели
 @bot.message_handler(commands=['admin'])
 def start(message: types.Message):
@@ -89,7 +58,7 @@ def msg_user(message):
     if message.text == 'Что читаем сегодня?':
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         message1 = tconv(message.date)
-        print('Запрос на чтение сегодняшнего дня ', user_name)
+        print('Пишет', user_name)
         text_message = message1
         global day
         day = text_message
@@ -107,7 +76,6 @@ def msg_user(message):
         print('Конец сессии')
         bot.register_next_step_handler(result_msg, reading)
     elif message.text == 'Отчет':
-        print('Запрос отчета от ', user_name)
         read_data = func.whats_read(user_id = user_id)
         # print('MAIN получен список прочитанного ', read_data)
         text = ''.join([f'{read_data}' for read_data in read_data])
@@ -122,33 +90,50 @@ def msg_user(message):
         stat_read = func.stat_reading(today = today, text = text)
         bot.send_message(message.chat.id, "Сегодня день № {}".format(today))
         # bot.send_message(message.from_user.id, 'Отчет о пропущенных днях:')
-        if stat_read == '0':
-            bot.send_message(message.from_user.id, '*Отставания нет, отлично!*\n\nЕсли хотите опередить всех - нажмите кнопку внизу и введите номер следующего дня, который хотите прочитать.', parse_mode= "Markdown", reply_markup=kb.input_read)
+        stat_read = stat_read.replace("0,", "")
+        count_stat = text
+        count_stat = re.sub("[ |,|0)]", "", count_stat)
+        count_day = 0
+        for item in count_stat:
+            if item != 0:
+                count_day += 1
+        count_res = str(int(today) - count_day)
+        # print('MAIN опережение на ', count_res)
+        if count_res >= '0':
+            if stat_read == '0':
+                bot.send_message(message.from_user.id, '*Отставания нет, отлично!*\n\nЕсли хотите опередить всех - нажмите кнопку внизу и введите номер следующего дня, который хотите прочитать.', parse_mode= "Markdown", reply_markup=kb.input_read)
+            else:
+                stat_read = stat_read.replace("0,", "")
+                count_stat = stat_read
+                count_stat = re.sub("[ |,|0)]", "", count_stat)
+                count_day = 0
+                for item in count_stat:
+                    if item != 0:
+                        count_day += 1
+                # print('MAIN количество прочитанных дней ', count_day)
+                bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read}\n\nВы отстаете на *{count_day}* дней', parse_mode= "Markdown")
+                bot.send_message(message.from_user.id, 'Чтобы прочитать пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.input_read)
         else:
-            stat_read = stat_read.replace("0,", "")
-            count_stat = text
-            count_stat = re.sub("[ |,|0)]", "", count_stat)
-            count_day = 0
-            for item in count_stat:
-                if item != 0:
-                    count_day += 1
-            # print('MAIN количество прочитанных дней ', count_day)
-            lag = int(today) - count_day
-            # print('MAIN вы отстатете на ', lag)
-            bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read}\n\nВы отстаете на *{lag}* дней', parse_mode= "Markdown")
-            bot.send_message(message.from_user.id, 'Чтобы прочитать пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.input_read)
+            count_res = re.sub("[-]", "", count_res)
+            bot.send_message(message.from_user.id, f'Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
+    elif message.text == 'Весь список прочитанного':
+        read_data = func.whats_read(user_id = user_id)
+        text = ''.join([f'{read_data}' for read_data in read_data])
+        text = re.sub("[)|(|')]", "", text)
+        text = text.replace(",,", ",")
+        bot.send_message(message.from_user.id, f'*Список прочитанных дней:*\n\n {text}', parse_mode= "Markdown", reply_markup=kb.input_read)
+
     elif message.text == 'Ввести день вручную':
-        print('Вводит день вручную', user_name)
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today = tconv(message.date)
         today = func.addiction(day = today)
         today = re.sub("[)|(|,)]", "", str(today))
         msg = bot.send_message(message.from_user.id, f'Введите порядковый номер дня в формате "1", например сегодня день № *{today}*.', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_day)
-    elif message.text == 'Назад':
-            bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
     elif message.text == 'Канал НБЦ':
             bot.send_message(message.chat.id, "*Подписывайтесь!*\nhttps://t.me/nbcnnov", parse_mode= "Markdown", reply_markup=kb.menu)
+    elif message.text == 'Назад':
+            bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
     else:
         bot.send_message(message.chat.id, "Не понимаю :(\nПожалуйста, используйте кнопки!", reply_markup=kb.menu)
 
@@ -196,7 +181,7 @@ def reading(message):
         bot.send_message(message.from_user.id, 'Зачем это сделал?. Управляй ботом кнопками!')
 
 
-#Функции бота
+#Функции бота (админ)
 @bot.callback_query_handler(func=lambda call: True)   
 def handler_call(call):
     chat_id = call.message.chat.id
@@ -204,19 +189,27 @@ def handler_call(call):
     user_id = call.from_user.id
     if call.data == 'statistics':
             bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=func.stats(), reply_markup=kb.admin)
-    elif call.data == 'whats_read':
-        bot.send_message(call.from_user.id)
-    elif call.data == 'Прочитанное':
-        read_data = func.whats_read(user_id = user_id)
-        print('MAIN получен список прочитанного ', read_data)
-        text = ''.join([f'{read_data}' for read_data in read_data])
-        text = re.sub("[)|(|')]", "", text)
-        text = text.replace(",,", ",")
-        func.add_to_gsheet(read_data = text)
-        bot.send_message(call.from_user.id, 'Вот список прочитанного:')
-        bot.send_message(call.from_user.id, text)
+    elif call.data == 'admin_msg':
+            chat_id = call.message.chat.id
+            text = call.message.text
+            msg = bot.send_message(chat_id=chat_id, text='Введите текст для рассылки. \n\nДля отмены нажми Назад без кавычек!', reply_markup=kb.back)
+            bot.register_next_step_handler(msg, message1)
 
-
+def message1(message):
+    text = message.text
+    if message.text == 'Назад':
+            bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
+    else:
+        info = func.admin_message(text)
+        bot.send_message(message.chat.id, text=' Рассылка начата!')
+        for i in range(len(info)):
+            try:
+                time.sleep(1)
+                bot.send_message(info[i][0], str(text))
+            except:
+                pass
+        bot.send_message(message.chat.id, text=' Рассылка завершена!')
+        print (info)
 
 # Поддержание работы
 bot.polling(none_stop=True)

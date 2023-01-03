@@ -6,9 +6,9 @@ import sqlite3
 
 admin = types.InlineKeyboardMarkup(row_width=2)
 admin.add(
-    types.InlineKeyboardButton('Прочитанное', callback_data='reading'),
+    types.InlineKeyboardButton('Рассылка', callback_data='admin_msg'),
     types.InlineKeyboardButton('Статистика', callback_data='statistics'),
-    types.InlineKeyboardButton('Назад', callback_data='menu')
+    # types.InlineKeyboardButton('Назад', callback_data='menu')
 )
 
 menu = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -32,5 +32,12 @@ back.add(
 input_read = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 input_read.add(
     types.InlineKeyboardButton('Ввести день вручную', callback_data='input_day'),
+    types.InlineKeyboardButton('Назад', callback_data='back')
+)
+
+input_read_advance = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+input_read_advance.add(
+    types.InlineKeyboardButton('Ввести день вручную', callback_data='input_day'),
+    types.InlineKeyboardButton('Весь список прочитанного', callback_data='input_day_advance'),
     types.InlineKeyboardButton('Назад', callback_data='back')
 )
