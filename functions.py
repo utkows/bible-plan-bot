@@ -12,7 +12,7 @@ import telebot
 import config as config
 from config import db, TOKEN
 import re
-import numpy
+import numpy as np
 
 def first_join(user_id, username):
     connection = sqlite3.connect(db)
@@ -78,13 +78,13 @@ def value_plan(value_input):
 
 def addiction(day):
     day = day.replace("'", "")
-    print('FUNC получена инфа о дне', day)
+    # print('FUNC получена инфа о дне', day)
     conn = sqlite3.connect(db)
     q = conn.cursor()
     q = q.execute(f'SELECT value FROM addiction WHERE day = "{day}"')
     global value_day
-    value_day = q.fetchone()
-    print('FUNC дню присвоено значение ', value_day)
+    value_day = q.fetchone()[0]
+    # print('FUNC дню присвоено значение ', value_day)
     return value_day
     conn.close()
     
@@ -96,8 +96,14 @@ def reading(user_id):
     if row is None:
         q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, value_day))
         conn.commit()
-        print('FUNC данные о прочтении записаны ', user_id, value_day)
+        # print('FUNC данные о прочтении записаны ', user_id, value_day)
     conn.close()
+
+
+
+
+
+
 
 def whats_read(user_id):
     # print('FUNC получен запрос на список прочитанного от ', user_id)
@@ -105,25 +111,58 @@ def whats_read(user_id):
     q = conn.cursor()
     q = q.execute(f'SELECT day FROM reading WHERE user_id = "{user_id}" ORDER BY day')
     whats_read_data = q.fetchall()
-    # print('FUNC передаю инфу польователю ', whats_read_data)
+    # print('FUNC инфа о прочитанных днях ', whats_read_data)
+    # print('FUNC инфа о прочитанных днях (список инт) ', whats_read_data)
     return whats_read_data
     conn.close()
+
+
+
+
+
+
+
 def stat_reading(today, text):
     # print('FUNC получен список прочитанных дней', text)
+    # print('FUNC список прочитанных дней отформатирован в строку ', text_str)
+    global text_clear
+    text_clear = []
+    for i in text:
+        list_text = list(map(int, i))
+        text_clear += list_text
+    # print('FUNC список прочитанных дней отформатирован в список ', text_clear)
     # print('FUNC получен номер дня', today)
-    statistics = sorted(set(map(str, range(0,int(today)+1))).difference(text))
-    # print('FUNC вывожу инфу о пропущенных днях ', statistics)
-    statistics = ', '.join([f'{statistics}' for statistics in statistics])
-    return statistics
+    generate_days = sorted(map(str, range(0,int(today)+1)))
+    # print('FUNC список сгенерированных дней ', generate_days)
+    gen_clear = []
+    for i in generate_days:
+        list_gen = list(map(int, i))
+        gen_clear += list_gen
+    # print('FUNC список сгенерированных дней отформатирован в список ', gen_clear)
+    statistics = set(gen_clear).difference(text_clear)
+    # print('FUNC вывожу разницу между списками ', statistics)
+    statistics = ''.join([f'{statistics}' for statistics in statistics])
+    statistics_list = []
+    for s in statistics:
+        list_stat = list(map(int, s))
+        statistics_list += list_stat
+    # print('FUNC вывожу пропущенные дни ', statistics_list)
+    return statistics_list
+def result_msg_read(stat_read, user_id):
+    text_clear_msg = text_clear
+    # print('FUNC вывожу прочитанные дни из переменной ', text_clear_msg)
+    return text_clear_msg
+
+
 
 
 
 
 
     # Запись в Google Sheet Bot
-def add_to_gsheet(read_data):
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(gcredentials, gscope)
-    gc = gspread.authorize(credentials)
-    wks = gc.open(gdocument).sheet1 
-    wks.append_row(
-        [read_data])
+# def add_to_gsheet(read_data):
+#     credentials = ServiceAccountCredentials.from_json_keyfile_name(gcredentials, gscope)
+#     gc = gspread.authorize(credentials)
+#     wks = gc.open(gdocument).sheet1 
+#     wks.append_row(
+#         [read_data])

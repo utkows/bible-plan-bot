@@ -18,6 +18,7 @@ from config import db, TOKEN
 import codecs
 import re
 from collections import Counter
+import numpy as np
 
 
 bot = telebot.TeleBot(TOKEN)
@@ -58,7 +59,7 @@ def msg_user(message):
     if message.text == 'Что читаем сегодня?':
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         message1 = tconv(message.date)
-        print('Пишет', user_name)
+        print('Что читаем сегодня ', user_name)
         text_message = message1
         global day
         day = text_message
@@ -67,63 +68,63 @@ def msg_user(message):
         # print('MAIN сегодняшний день номер', today)
         info = func.msg_plan(day_input=text_message)
         # print('Вывожу сообщение')
-        print(info)
+        # print(info)
         if info == ([]):
             result_msg = bot.send_message(message.from_user.id, 'Что-то пошло не так.\nВсе сломалось? Пишите @utkows')
         else:
             bot.send_message(message.chat.id, "День № {}".format(today))
             result_msg = bot.send_message(message.chat.id, info, reply_markup=kb.read)
-        print('Конец сессии')
+        # print('Конец сессии')
         bot.register_next_step_handler(result_msg, reading)
     elif message.text == 'Отчет':
+        print('Отчет ', user_name)
         read_data = func.whats_read(user_id = user_id)
         # print('MAIN получен список прочитанного ', read_data)
-        text = ''.join([f'{read_data}' for read_data in read_data])
-        text = re.sub("[)|(|')]", "", text)
-        text = text.replace(",,", ",")
-        func.add_to_gsheet(read_data = text)
+        # func.add_to_gsheet(read_data = read_data)
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today = tconv(message.date)
         today = func.addiction(day = today)
         today = re.sub("[)|(|,)]", "", str(today))
         # print('MAIN прочитанное день', today)
-        stat_read = func.stat_reading(today = today, text = text)
+        stat_read = func.stat_reading(today = today, text = read_data)
+        res_msg_reading = func.result_msg_read(stat_read = stat_read, user_id = user_id)
         bot.send_message(message.chat.id, "Сегодня день № {}".format(today))
-        # bot.send_message(message.from_user.id, 'Отчет о пропущенных днях:')
-        stat_read = stat_read.replace("0,", "")
-        count_stat = text
-        count_stat = re.sub("[ |,|0)]", "", count_stat)
+        stat_read_len = str(len(stat_read)-1)
+        count_stat = res_msg_reading
+        # print('MAIN количество пропущенных дней ', stat_read_len)
         count_day = 0
         for item in count_stat:
             if item != 0:
                 count_day += 1
         count_res = str(int(today) - count_day)
         # print('MAIN опережение на ', count_res)
-        if count_res >= '0':
-            if stat_read == '0':
-                bot.send_message(message.from_user.id, '*Отставания нет, отлично!*\n\nЕсли хотите опередить всех - нажмите кнопку внизу и введите номер следующего дня, который хотите прочитать.', parse_mode= "Markdown", reply_markup=kb.input_read)
-            else:
-                stat_read = stat_read.replace("0,", "")
-                count_stat = stat_read
-                count_stat = re.sub("[ |,|0)]", "", count_stat)
-                count_day = 0
-                for item in count_stat:
-                    if item != 0:
-                        count_day += 1
-                # print('MAIN количество прочитанных дней ', count_day)
-                bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read}\n\nВы отстаете на *{count_day}* дней', parse_mode= "Markdown")
-                bot.send_message(message.from_user.id, 'Чтобы прочитать пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.input_read)
-        else:
+        if count_res < '0' == stat_read_len:
             count_res = re.sub("[-]", "", count_res)
             bot.send_message(message.from_user.id, f'Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
+        elif stat_read_len == '0':
+                bot.send_message(message.from_user.id, '*Отставания нет, отлично!*\n\nЕсли хотите опередить всех - нажмите кнопку внизу и введите номер следующего дня, который хотите прочитать.', parse_mode= "Markdown", reply_markup=kb.input_read)
+        else:
+            count_stat = stat_read
+            count_day = 0
+            for i in count_stat:
+                if i != 0:
+                    count_day += 1
+            # print('MAIN количество пропущенных дней ', count_day)
+            stat_read_msg = ', '.join([f'{stat_read_msg}' for stat_read_msg in stat_read])
+            stat_read_msg = stat_read_msg.replace("0, ", "")
+            # print('MAIN сформирован список пропущенных дней ', stat_read_msg)
+            bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read_msg}\n\nВы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
+            bot.send_message(message.from_user.id, 'Чтобы прочитать пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.input_read)
     elif message.text == 'Весь список прочитанного':
+        print('Список прочитанного ', user_name)
         read_data = func.whats_read(user_id = user_id)
-        text = ''.join([f'{read_data}' for read_data in read_data])
+        # print('MAIN вывожу список прочитанного ', read_data)
+        text = ' '.join([f'{read_data}' for read_data in read_data])
         text = re.sub("[)|(|')]", "", text)
         text = text.replace(",,", ",")
-        bot.send_message(message.from_user.id, f'*Список прочитанных дней:*\n\n {text}', parse_mode= "Markdown", reply_markup=kb.input_read)
-
+        bot.send_message(message.from_user.id, f'*Список прочитанных дней:*\n\n {text}\n\nДля того чтобы удалить случайно отмеченный день, пожалуйста, напишите сюда @utkows', parse_mode= "Markdown", reply_markup=kb.input_read)
     elif message.text == 'Ввести день вручную':
+        print('Вводит день вручную ', user_name)
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today = tconv(message.date)
         today = func.addiction(day = today)
@@ -131,6 +132,7 @@ def msg_user(message):
         msg = bot.send_message(message.from_user.id, f'Введите порядковый номер дня в формате "1", например сегодня день № *{today}*.', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_day)
     elif message.text == 'Канал НБЦ':
+            print('Ссылка на канал ', user_name)
             bot.send_message(message.chat.id, "*Подписывайтесь!*\nhttps://t.me/nbcnnov", parse_mode= "Markdown", reply_markup=kb.menu)
     elif message.text == 'Назад':
             bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
@@ -140,45 +142,53 @@ def msg_user(message):
 # Функция получение информации о введенном вручную дне
 def input_day(message):
     user_id = message.from_user.id
+    generate_alldays = sorted(map(str, range(1, 365+1)))
+    # print('Введенное значение входит в диапазон  ', generate_alldays)
     text = message.text
     global value_input
     if message.text == 'Назад':
             bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
-    else:
-        for i in text:
-            if i.isdigit() is not True:
-                bot.send_message(message.chat.id, "Введите корректный номер!", reply_markup=kb.input_read)
-            else:
+    elif text.isdigit()==False:
+        bot.send_message(message.from_user.id, 'Пожалуйста, введите корректное значение!', reply_markup=kb.input_read)
+    elif text.isdigit():
+        for i in generate_alldays:
+            if i == text:        
                 value_input = func.user_input(value = text)
                 value = func.value_plan(value_input = value_input)
                 msg = bot.send_message(message.from_user.id, value, reply_markup=kb.read)
                 bot.register_next_step_handler(msg, reading_input)
+    else:
+        bot.send_message(message.from_user.id, 'Пожалуйста, введите значение!', reply_markup=kb.input_read)
 
 # Функция отметка о прочтении введенного вручную дня
 def reading_input(message):
     text = message.text
+    user_name = message.from_user.username
     user_id = message.from_user.id
     if text == "Прочитано!":
+            print('Отметка о прочтении (вручн) ', user_name)
             func.addiction(day = value_input)
             func.reading(user_id = user_id)
-            bot.send_message(message.from_user.id, 'Молодец!', reply_markup=kb.menu)
+            bot.send_message(message.from_user.id, 'Отлично!', reply_markup=kb.menu)
     elif text == 'Назад':
             bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
     else:
-        bot.send_message(message.from_user.id, 'Все сломалось. Нажмите "Назад"')
+        bot.send_message(message.from_user.id, 'Пожалуйста, используйте кнопки!')
 
 # Функция по отметке прочитанного (авто)
 def reading(message):
     user_id = message.from_user.id
+    user_name = message.from_user.username
     text = message.text
     if text == "Прочитано!":
+            print('Отметка о прочтении (авто) ', user_name)
             func.addiction(day = day)
             func.reading(user_id = user_id)
-            bot.send_message(message.from_user.id, 'Молодец!', reply_markup=kb.menu)
+            bot.send_message(message.from_user.id, 'Отлично!', reply_markup=kb.menu)
     elif text == 'Назад':
             bot.send_message(message.from_user.id, "Выберите кнопку", reply_markup=kb.menu)
     else:
-        bot.send_message(message.from_user.id, 'Зачем это сделал?. Управляй ботом кнопками!')
+        bot.send_message(message.from_user.id, 'Пожалуйста, используйте кнопки!')
 
 
 #Функции бота (админ)
