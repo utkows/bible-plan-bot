@@ -13,6 +13,7 @@ import config as config
 from config import db, TOKEN
 import re
 import numpy as np
+import logging
 
 def first_join(user_id, username):
     connection = sqlite3.connect(db)
@@ -97,6 +98,7 @@ def reading(user_id):
         q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, value_day))
         conn.commit()
         # print('FUNC данные о прочтении записаны ', user_id, value_day)
+        logging.info(f"FUNC данные о прочтении записаны {user_id}, {value_day}.")
     conn.close()
 
 
@@ -113,6 +115,7 @@ def whats_read(user_id):
     whats_read_data = q.fetchall()
     # print('FUNC инфа о прочитанных днях ', whats_read_data)
     # print('FUNC инфа о прочитанных днях (список инт) ', whats_read_data)
+    logging.info(f"FUNC инфа о прочитанных днях (список инт) {user_id}, {whats_read_data}.")
     return whats_read_data
     conn.close()
 

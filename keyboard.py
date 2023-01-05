@@ -8,7 +8,7 @@ admin = types.InlineKeyboardMarkup(row_width=2)
 admin.add(
     types.InlineKeyboardButton('Рассылка', callback_data='admin_msg'),
     types.InlineKeyboardButton('Статистика', callback_data='statistics'),
-    # types.InlineKeyboardButton('Назад', callback_data='menu')
+    types.InlineKeyboardButton('Логи', callback_data='logging')
 )
 
 menu = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
