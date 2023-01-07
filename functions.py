@@ -101,12 +101,6 @@ def reading(user_id):
         logging.info(f"FUNC данные о прочтении записаны {user_id}, {value_day}.")
     conn.close()
 
-
-
-
-
-
-
 def whats_read(user_id):
     # print('FUNC получен запрос на список прочитанного от ', user_id)
     conn = sqlite3.connect(db)
@@ -118,12 +112,6 @@ def whats_read(user_id):
     logging.info(f"FUNC инфа о прочитанных днях (список инт) {user_id}, {whats_read_data}.")
     return whats_read_data
     conn.close()
-
-
-
-
-
-
 
 def stat_reading(today, text):
     # print('FUNC получен список прочитанных дней', text)
@@ -156,8 +144,23 @@ def result_msg_read(stat_read, user_id):
     # print('FUNC вывожу прочитанные дни из переменной ', text_clear_msg)
     return text_clear_msg
 
+def check_all(user_id, stat_read):
+    for i in stat_read:
+        if i != 0:
+            conn = sqlite3.connect(db)
+            q = conn.cursor()
+            q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, i))
+            conn.commit()
+    logging.info(f"FUNC данные о прочтении записаны {user_id}, {stat_read}.")
+    conn.close()
 
-
+def delete_check(user_id, delete_day):
+    conn = sqlite3.connect(db)
+    q = conn.cursor()
+    q.execute(f"DELETE FROM reading WHERE day = '{delete_day}' AND user_id = {user_id}")
+    conn.commit()
+    # logging.info(f"FUNC данные о прочтении записаны {user_id}, {stat_read}.")
+    conn.close()
 
 
 
