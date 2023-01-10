@@ -118,7 +118,7 @@ def msg_user(message):
             count_res = re.sub("[-]", "", count_res)
             bot.send_message(message.from_user.id, f'Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
         elif stat_read_len == '0':
-                bot.send_message(message.from_user.id, '*Отставания нет, отлично!*\n\nЕсли хотите опередить всех - нажмите кнопку внизу и введите номер следующего дня, который хотите прочитать.', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
+                bot.send_message(message.from_user.id, '*Все по плану!*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
         else:
             count_stat = stat_read
             count_day = 0

@@ -114,31 +114,22 @@ def whats_read(user_id):
     conn.close()
 
 def stat_reading(today, text):
-    # print('FUNC получен список прочитанных дней', text)
-    # print('FUNC список прочитанных дней отформатирован в строку ', text_str)
+    print('FUNC получен список прочитанных дней', text)
     global text_clear
     text_clear = []
     for i in text:
         list_text = list(map(int, i))
         text_clear += list_text
-    # print('FUNC список прочитанных дней отформатирован в список ', text_clear)
+    print('FUNC список прочитанных дней отформатирован в список ', text_clear)
     # print('FUNC получен номер дня', today)
     generate_days = sorted(map(str, range(0,int(today)+1)))
-    # print('FUNC список сгенерированных дней ', generate_days)
-    gen_clear = []
-    for i in generate_days:
-        list_gen = list(map(int, i))
-        gen_clear += list_gen
-    # print('FUNC список сгенерированных дней отформатирован в список ', gen_clear)
+    print('FUNC строки сгенерированных дней ', generate_days)
+    gen_clear = sorted(list(map(int, generate_days)))
+    print('FUNC строки сгенерированных дней преобразованы в список', gen_clear)
     statistics = set(gen_clear).difference(text_clear)
-    # print('FUNC вывожу разницу между списками ', statistics)
-    statistics = ''.join([f'{statistics}' for statistics in statistics])
-    statistics_list = []
-    for s in statistics:
-        list_stat = list(map(int, s))
-        statistics_list += list_stat
-    # print('FUNC вывожу пропущенные дни ', statistics_list)
-    return statistics_list
+    print('FUNC вывожу разницу между списками ', statistics)
+    print('FUNC вывожу пропущенные дни ', statistics)
+    return statistics
 def result_msg_read(stat_read, user_id):
     text_clear_msg = text_clear
     # print('FUNC вывожу прочитанные дни из переменной ', text_clear_msg)
