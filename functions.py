@@ -57,38 +57,58 @@ def msg_plan(day_input):
     return row
     conn.close()
 
+
+
+
+
+
 def user_input(value):
     # print('FUNC получена инфа о ручном вводе дня', value)
     conn = sqlite3.connect(db)
     q = conn.cursor()
-    q = q.execute(f'SELECT day FROM addiction WHERE value = "{value}"')
-    value_input = q.fetchone()
-    value_input = re.sub("[)|(|,)]", "", str(value_input))
+    q = q.execute(f'SELECT numbers FROM plan WHERE numbers = "{value}"')
+    value_input = q.fetchone()[0]
     return value_input
     conn.close()
+
 
 def value_plan(value_input):
     # print('FUNC получена инфа о дне в БД', value_input)
     conn = sqlite3.connect(db)
     q = conn.cursor()
-    q = q.execute(f'SELECT read FROM plan WHERE day IS '+str(value_input))
+    q = q.execute(f'SELECT read FROM plan WHERE numbers IS {value_input}')
     value_plan = q.fetchone()
     # print('FUNC передаю инфу из плана', value_plan)
     return value_plan
     conn.close()
 
-def addiction(day):
-    day = day.replace("'", "")
+
+def addiction_stat(day):
+    # day = day.replace("'", "")
     # print('FUNC получена инфа о дне', day)
     conn = sqlite3.connect(db)
     q = conn.cursor()
-    q = q.execute(f'SELECT value FROM addiction WHERE day = "{day}"')
+    q = q.execute(f'SELECT numbers FROM plan WHERE day = "{day}"')
     global value_day
     value_day = q.fetchone()[0]
     # print('FUNC дню присвоено значение ', value_day)
     return value_day
     conn.close()
+
+
+def addiction(day):
+    # day = day.replace("'", "")
+    print('FUNC получена инфа о дне', day)
+    conn = sqlite3.connect(db)
+    q = conn.cursor()
+    q = q.execute(f'SELECT numbers FROM plan WHERE numbers = "{day}"')
+    global value_day
+    value_day = q.fetchone()[0]
+    print('FUNC дню присвоено значение ', value_day)
+    return value_day
+    conn.close()
     
+
 def reading(user_id):
     conn = sqlite3.connect(db)
     q = conn.cursor()
@@ -97,9 +117,10 @@ def reading(user_id):
     if row is None:
         q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, value_day))
         conn.commit()
-        # print('FUNC данные о прочтении записаны ', user_id, value_day)
+        # print('FUNC данные о прочтении записаны ', user_id, value_addiction)
         logging.info(f"FUNC данные о прочтении записаны {user_id}, {value_day}.")
     conn.close()
+
 
 def whats_read(user_id):
     # print('FUNC получен запрос на список прочитанного от ', user_id)
@@ -113,17 +134,18 @@ def whats_read(user_id):
     return whats_read_data
     conn.close()
 
+
 def stat_reading(today, text):
-    print('FUNC получен список прочитанных дней', text)
+    # print('FUNC получен список прочитанных дней', text)
     global text_clear
     text_clear = []
     for i in text:
         list_text = list(map(int, i))
         text_clear += list_text
-    print('FUNC список прочитанных дней отформатирован в список ', text_clear)
+    # print('FUNC список прочитанных дней отформатирован в список ', text_clear)
     # print('FUNC получен номер дня', today)
     generate_days = sorted(map(str, range(0,int(today)+1)))
-    print('FUNC строки сгенерированных дней ', generate_days)
+    # print('FUNC строки сгенерированных дней ', generate_days)
     gen_clear = sorted(list(map(int, generate_days)))
     print('FUNC строки сгенерированных дней преобразованы в список', gen_clear)
     statistics = set(gen_clear).difference(text_clear)
@@ -135,6 +157,26 @@ def result_msg_read(stat_read, user_id):
     # print('FUNC вывожу прочитанные дни из переменной ', text_clear_msg)
     return text_clear_msg
 
+
+def stat_read_full(stat_read):
+    # print('FUNC получены непрочитанные дни ', stat_read)
+    # stat_read_list = [int(x) for x in stat_read]
+    # print('FUNC непрочитанные дни отформатированы в список ', stat_read_list)
+    conn = sqlite3.connect(db)
+    q = conn.cursor()
+    stat_read_full = []
+    for i in stat_read:
+        if i != 0:
+            q = q.execute(f'SELECT read FROM plan WHERE numbers = {i}')
+            stat_read_full_bd = q.fetchall()[0][0]
+            stat_read_full += [str('\n'.join([f'{i} - {stat_read_full_bd}']))]
+            # print('FUNC найдены отрывки по пропущенным дням', stat_read_full)
+    stat_read_full_msg = '\n'.join(stat_read_full)
+    # print('FUNC конец вывода ', stat_read_full_msg)
+    return stat_read_full_msg
+    conn.close()
+
+
 def check_all(user_id, stat_read):
     for i in stat_read:
         if i != 0:
@@ -142,6 +184,7 @@ def check_all(user_id, stat_read):
             q = conn.cursor()
             q.execute("INSERT INTO reading (user_id, day) VALUES ('%s', '%s')"%(user_id, i))
             conn.commit()
+    # print(f"FUNC данные о прочтении записаны {user_id}, {stat_read}.")
     logging.info(f"FUNC данные о прочтении записаны {user_id}, {stat_read}.")
     conn.close()
 
