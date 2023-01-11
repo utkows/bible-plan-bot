@@ -98,13 +98,13 @@ def addiction_stat(day):
 
 def addiction(day):
     # day = day.replace("'", "")
-    print('FUNC получена инфа о дне', day)
+    # print('FUNC получена инфа о дне', day)
     conn = sqlite3.connect(db)
     q = conn.cursor()
     q = q.execute(f'SELECT numbers FROM plan WHERE numbers = "{day}"')
     global value_day
     value_day = q.fetchone()[0]
-    print('FUNC дню присвоено значение ', value_day)
+    # print('FUNC дню присвоено значение ', value_day)
     return value_day
     conn.close()
     
@@ -147,10 +147,10 @@ def stat_reading(today, text):
     generate_days = sorted(map(str, range(0,int(today)+1)))
     # print('FUNC строки сгенерированных дней ', generate_days)
     gen_clear = sorted(list(map(int, generate_days)))
-    print('FUNC строки сгенерированных дней преобразованы в список', gen_clear)
+    # print('FUNC строки сгенерированных дней преобразованы в список', gen_clear)
     statistics = set(gen_clear).difference(text_clear)
-    print('FUNC вывожу разницу между списками ', statistics)
-    print('FUNC вывожу пропущенные дни ', statistics)
+    # print('FUNC вывожу разницу между списками ', statistics)
+    # print('FUNC вывожу пропущенные дни ', statistics)
     return statistics
 def result_msg_read(stat_read, user_id):
     text_clear_msg = text_clear

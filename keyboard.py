@@ -50,8 +50,8 @@ input_read_advance.add(
 
 yes_no = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 yes_no.add(
-    types.InlineKeyboardButton('✅ Да!', callback_data='yes'),
-    types.InlineKeyboardButton('❌ Нет!', callback_data='no')
+    types.InlineKeyboardButton('❌ Нет!', callback_data='no'),
+    types.InlineKeyboardButton('✅ Да!', callback_data='yes')
 )
 
 input_read_all_list = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
@@ -79,8 +79,8 @@ check = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 check.add(
     types.InlineKeyboardButton('✍️ Отметить несколько дней', callback_data='input_day'), 
     types.InlineKeyboardButton('✅ Всё прочитано', callback_data='check_all_days'),
-    # types.InlineKeyboardButton('❌ Удалить отметку о прочтении', callback_data='input_day'),
-    types.InlineKeyboardButton('🔙 Назад', callback_data='back')
+    types.InlineKeyboardButton('🔙 Назад', callback_data='back'),
+    types.InlineKeyboardButton('❌ Удалить отметку о прочтении', callback_data='input_day')
 )
 
 check_day = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
