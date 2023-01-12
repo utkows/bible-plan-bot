@@ -9,6 +9,7 @@ gdocument = 'bd_bot'
 import telebot
 from telebot import types
 import time
+from datetime import datetime
 from config import TOKEN, admin
 import sqlite3
 import keyboard as kb
@@ -60,6 +61,8 @@ def start(message: types.Message):
         bot.send_message(message.chat.id, ' {}, вы авторизованы!'.format(message.from_user.first_name),
                          reply_markup=kb.admin)
 
+
+
 # Запрос, что читаем сегодня, отчет о прочитанных днях
 @bot.message_handler(content_types=['text'])
 def msg_user(message):
@@ -69,7 +72,7 @@ def msg_user(message):
     if message.text == '🎁 Что читаем сегодня?':
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today_date = tconv(message.date)
-        print('Что читаем сегодня ', user_name)
+        print('Что читаем сегодня ', user_name, user_first_name)
         logging.info(f"Что читаем сегодня: {user_name}, {user_first_name}.")
         today = func.addiction_stat(day = today_date)
         today = re.sub("[)|(|,)]", "", str(today))
@@ -84,7 +87,7 @@ def msg_user(message):
         # print('Конец сессии')
         bot.register_next_step_handler(result_msg, reading)
     elif message.text == '📊 Отчет':
-        print('Отчет ', user_name)
+        print('Отчет ', user_name, user_first_name)
         logging.info(f"Запрос отчета от {user_name}, {user_first_name}.")
         read_data = func.whats_read(user_id = user_id)
         # print('MAIN получен список прочитанного ', read_data)
@@ -111,7 +114,7 @@ def msg_user(message):
             count_res = re.sub("[-]", "", count_res)
             bot.send_message(message.from_user.id, f'Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
         elif stat_read_len == '0':
-                bot.send_message(message.from_user.id, '*Все по плану!🎇*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
+                bot.send_message(message.from_user.id, '*Все по плану! 🎇*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
         else:
             count_stat = stat_read
             count_day = 0
@@ -122,16 +125,16 @@ def msg_user(message):
             if count_day < 8:
                 logging.info(f"MAIN сформирован список пропущенных дней: {stat_read_full}, для {user_name}, {user_first_name}.")
                 bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read_full}\n\nВы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
-                msg = bot.send_message(message.from_user.id, 'Чтобы прочитать отметить пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.check)
+                msg = bot.send_message(message.from_user.id, 'Чтобы отметить пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.check)
                 bot.register_next_step_handler(msg, reading_input)
             else:
                 stat_read_msg = ', '.join([f'{stat_read_msg}' for stat_read_msg in stat_read])
                 logging.info(f"MAIN сформирован список пропущенных дней: {stat_read_msg}, для {user_name}, {user_first_name}.")
                 stat_read_msg = stat_read_msg[:0][:1] + stat_read_msg[(2):]
                 bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read_msg}\n\nВы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
-                bot.send_message(message.from_user.id, 'Чтобы прочитать пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.statistics)
+                bot.send_message(message.from_user.id, 'Чтобы посмотреть что нужно прочитать в эти пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.statistics)
     elif message.text == '🗞 Показать все прочитанные дни':
-        print('Список прочитанного ', user_name)
+        print('Список прочитанного ', user_name, user_first_name)
         read_data = func.whats_read(user_id = user_id)
         # print('MAIN вывожу список прочитанного ', read_data)
         logging.info(f"Показать все прочитанные дни: {read_data}, для {user_name}, {user_first_name}.")
@@ -140,7 +143,7 @@ def msg_user(message):
         text = text.replace(",,", ",")
         bot.send_message(message.from_user.id, f'*Список прочитанных дней:*\n\n {text}', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
     elif message.text == '✍️ Ввести номер дня':
-        print('Вводит день вручную ', user_name)
+        print('Вводит день вручную ', user_name, user_first_name)
         logging.info(f"Вводит день вручную {user_name}, {user_first_name}.")
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today = tconv(message.date)
@@ -172,23 +175,24 @@ def msg_user(message):
         res_msg_reading_len = str(len(stat_read))
         # print('MAIN пропущенных дней', res_msg_reading_len)
         if int(res_msg_reading_len) > 1:
-            msg = bot.send_message(message.from_user.id, f'❗️*Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
+            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
     elif message.text == '❌ Удалить отметку о прочтении':
-            print('Удалить отметку о прочтении ', user_name)
+            print('Удалить отметку о прочтении ', user_name, user_first_name)
             logging.info(f"Удалить отметку о прочтении {user_name}, {user_first_name}.")
             msg = bot.send_message(message.chat.id, "Введите день с которого нужно удалить отметку о прочтении", reply_markup=kb.back)
             bot.register_next_step_handler(msg, delete_check)
     elif message.text == '❌ Удалить другой день':
-            print('Удалить другой день ', user_name)
+            print('Удалить другой день ', user_name, user_first_name)
             logging.info(f"Удалить отметку о прочтении {user_name}, {user_first_name}.")
             msg = bot.send_message(message.chat.id, "Введите день с которого нужно удалить отметку о прочтении", reply_markup=kb.back)
             bot.register_next_step_handler(msg, delete_check)
     elif message.text == '🆘 Помощь':
+            print('Помощь ', user_name, user_first_name)
             logging.info(f"Помощь {user_name}, {user_first_name}.")
-            bot.send_message(message.chat.id, f'Ответы на самые частые вы сможете найти по ссылке:\n\nhttps://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10')
+            bot.send_message(message.chat.id, f'Ответы на самые частые вопросы вы сможете найти по [ссылке](https://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10)', parse_mode= "Markdown")
             bot.send_message(message.chat.id, f'Если вашего вопроса нет в списке, или у вас есть предложение по улучшению бота, напишите сообщение, нажав кнопку внизу 👇', parse_mode= "Markdown", reply_markup=kb.quesch)
     elif message.text == '✉️ Отправить сообщение':
             logging.info(f"Отправить сообщение {user_name}, {user_first_name}.")
@@ -196,7 +200,7 @@ def msg_user(message):
             bot.register_next_step_handler(msg, quesch)
     elif message.text == '🔙 Назад':
             logging.info(f"Нажал Назад в гл.меню {user_name}, {user_first_name}.")
-            bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
+            bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)    
     else:
         logging.info(f"Ошибка, некорректное значение при вводе в гл.меню {user_name}, {user_first_name}.")
         bot.send_message(message.chat.id, "Пожалуйста, воспользуйтесь кнопками!", reply_markup=kb.menu)
@@ -239,35 +243,35 @@ def reading_input(message):
     res_msg_reading = func.result_msg_read(stat_read = stat_read, user_id = user_id)
     res_msg_reading_len = str(len(stat_read))
     if text == "✅ Прочитано!":
-            print('Отметка о прочтении (вручн) ', user_name)
+            print('Отметка о прочтении (вручн) ', user_name, user_first_name)
             logging.info(f"Отметка о прочтении (вручн) {user_name}, {user_first_name}.")
             func.addiction(day = value_input)
             func.reading(user_id = user_id)
-            bot.send_message(message.from_user.id, 'Отлично!🎉', reply_markup=kb.check_day)
+            bot.send_message(message.from_user.id, 'Отлично! 🎉', reply_markup=kb.check_day)
     elif text == '🔙 Назад':
             bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
     elif text == '✍️ Ввести другой день':
-        print('Ввести другой день ', user_name)
+        print('Ввести другой день ', user_name, user_first_name)
         msg = bot.send_message(message.from_user.id, f'Введите порядковый номер дня в формате "1", например сегодня день № *{today}*.', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_day)
     elif text == '✅ Всё прочитано':
-        print('Всё прочитано ', user_name)
+        print('Всё прочитано ', user_name, user_first_name)
         logging.info(f"Всё прочитано {user_name}, {user_first_name}.")
         if int(res_msg_reading_len) > 1:
-            msg = bot.send_message(message.from_user.id, f'*Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
+            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
     elif text == '✍️ Отметить несколько дней':
-        print('Отметить несколько дней ', user_name)
+        print('Отметить несколько дней ', user_name, user_first_name)
         msg = bot.send_message(message.from_user.id, f'Введите день, который хотите отметить прочитанным в формате "1"', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_sev_days)
     elif text == '✍️ Ввести другой день':
-        print('Ввести другой день ', user_name)
+        print('Ввести другой день ', user_name, user_first_name)
         msg = bot.send_message(message.from_user.id, f'Введите день, который хотите отметить прочитанным в формате "1"', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_sev_days)
     elif message.text == '❌ Удалить отметку о прочтении':
-        print('Удалить отметку о прочтении ', user_name)
+        print('Удалить отметку о прочтении ', user_name, user_first_name)
         logging.info(f"Удалить отметку о прочтении {user_name}, {user_first_name}.")
         msg = bot.send_message(message.chat.id, "Введите день с которого нужно удалить отметку о прочтении", reply_markup=kb.back)
         bot.register_next_step_handler(msg, delete_check)
@@ -284,11 +288,11 @@ def reading(message):
     if text == "✅ Прочитано!":
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today_date = tconv(message.date)
-        print('Отметка о прочтении (авто) ', user_name)
+        print('Отметка о прочтении (авто) ', user_name, user_first_name)
         logging.info(f"Отметка о прочтении (авто) {user_name}, {user_first_name}.")
         func.addiction_stat(day = today_date)
         func.reading(user_id = user_id)
-        bot.send_message(message.from_user.id, 'Отлично!🎉', reply_markup=kb.menu)
+        bot.send_message(message.from_user.id, 'Отлично! 🎉', reply_markup=kb.menu)
     elif text == '🔙 Назад':
         bot.send_message(message.from_user.id, "Выберите кнопку", reply_markup=kb.menu)
     else:
@@ -311,18 +315,18 @@ def check(message):
     res_msg_reading_len = str(len(stat_read))
     # print(f'Количество пропущенных дней {res_msg_reading_len}, сегодня день номер {today}')
     if text == '✅ Всё прочитано':
-        print('Всё прочитано ', user_name)
+        print('Всё прочитано ', user_name, user_first_name)
         if int(res_msg_reading_len) > 1:
-            msg = bot.send_message(message.from_user.id, f'*Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
+            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
     elif text == '✍️ Отметить несколько дней':
-        print('Отметить несколько дней ', user_name)
+        print('Отметить несколько дней ', user_name, user_first_name)
         msg = bot.send_message(message.from_user.id, f'Введите день, который хотите отметить прочитанным в формате "1"', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_sev_days)
     elif text == '✍️ Ввести другой день':
-        print('Ввести другой день ', user_name)
+        print('Ввести другой день ', user_name, user_first_name)
         msg = bot.send_message(message.from_user.id, f'Введите день, который хотите отметить прочитанным в формате "1"', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_sev_days)
     else:
@@ -338,7 +342,7 @@ def check_all(message):
     if text == '❌ Нет!':
         bot.send_message(message.from_user.id, "Выберите кнопку", reply_markup=kb.statistics)
     elif text == '✅ Да!':
-        print('Отметка о прочтении (все дни) ', user_name)
+        print('Отметка о прочтении (все дни) ', user_name, user_first_name)
         logging.info(f"Отметка о прочтении (все дни) {user_name}, {user_first_name}.")
         read_data = func.whats_read(user_id = user_id)
         # print('MAIN получен список прочитанного ', read_data)
