@@ -24,7 +24,7 @@ def first_join(user_id, username):
         q.execute("INSERT INTO users (user_id,  nick) VALUES ('%s', '%s')"%(user_id,username))
         connection.commit()
     connection.close()
-def admin_message(text):
+def admin_message():
     # print('FUNC получено сообщение ', text)
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
@@ -52,7 +52,7 @@ def msg_plan(day_input):
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
     cursor.execute(f'SELECT read FROM plan WHERE day = "{day_input}"')
-    row = cursor.fetchall()
+    row = cursor.fetchall()[0][0]
     # print('FUNC данные в таблице получены ', row)
     return row
     conn.close()

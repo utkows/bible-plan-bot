@@ -21,6 +21,9 @@ import re
 from collections import Counter
 import numpy as np
 import logging
+from threading import Thread
+from apscheduler.schedulers.background import BackgroundScheduler
+from tzlocal import get_localzone
 
 
 bot = telebot.TeleBot(TOKEN)
@@ -37,6 +40,8 @@ logging.basicConfig(level=logging.INFO, filename="log.log",
 
 print('Бот запущен')
 
+
+
 # Запись в Базу Данных
 @bot.message_handler(commands=['start'])
 def get_text_message(message):
@@ -45,8 +50,48 @@ def get_text_message(message):
     username = message.from_user.username
     print('Присоединился ', user_first_name, username, message.from_user.id)
     func.first_join(user_id=chat_id, username=username)
-    bot.send_message(message.from_user.id, '👋 Здравствуйте!\nЭто бот Нижегородской Библейской Церкви для чтения Библии по плану.\n\n❗️*Вначале рекомендуем ознакомиться с инструкцией по ссылке:*\n https://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10\n\n', parse_mode= "Markdown", reply_markup=kb.menu)
+    bot.send_message(message.from_user.id, '👋 Здравствуйте!\nЭто бот Нижегородской Библейской Церкви для чтения Библии по плану.\n\n❗️Вначале рекомендуем ознакомиться с инструкцией по [ссылке](https://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10)', parse_mode= "Markdown", reply_markup=kb.menu)
     logging.info(f"Новый пользователь успешно добавлен в БД: {username}, {user_first_name}.")
+
+# Функция автоотправки ежедневных напоминаний
+def whats_read_evday():
+    print('Ежедневные напоминания запущены')
+    tconv = time.strftime("%d.%m.%Y")
+    today_date = tconv
+    inline_today = func.addiction_stat(day = today_date)
+    info_msg = func.msg_plan(day_input=today_date)
+    users = func.admin_message()
+    for i in range(len(users)):
+        try:
+            time.sleep(1)
+            bot.send_message(users[i][0], f'☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{inline_today}*\n\n📖 Читаем *{info_msg}*', parse_mode= "Markdown", reply_markup=kb.inline_read)
+        except:
+            pass
+    print('Ежедневные напоминания отправлены')
+
+# Параметры расписания
+tz = get_localzone()
+scheduler = BackgroundScheduler(timezone=tz)
+scheduler.add_job(whats_read_evday, 'cron', hour='2', minute='18')
+scheduler.start()
+
+# Отметка о прочтении inline
+@bot.callback_query_handler(func=lambda call: call.data == 'inline_read')  
+def inline_reading(check):
+    user_id = check.from_user.id
+    user_name = check.from_user.username
+    user_first_name = check.from_user.first_name
+    tconv = time.strftime("%d.%m.%Y")
+    today_date = tconv
+    today = func.addiction_stat(day = today_date)
+    print('Отметка о прочтении (инлайн) ', user_name, user_first_name)
+    logging.info(f"Отметка о прочтении (инлайн) {user_name}, {user_first_name}.")
+    info_msg = func.msg_plan(day_input=today_date)
+    func.reading(user_id = user_id)
+    bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
+
+
+
 
 # Вызов Админ Панели
 @bot.message_handler(commands=['admin'])
@@ -63,9 +108,14 @@ def start(message: types.Message):
 
 
 
+
 # Запрос, что читаем сегодня, отчет о прочитанных днях
 @bot.message_handler(content_types=['text'])
 def msg_user(message):
+    try:
+        bot.edit_message_reply_markup(message.chat.id, message_id = message.message_id-1, reply_markup = '')
+    except:
+        pass
     user_id = message.from_user.id
     user_first_name = message.from_user.first_name
     user_name = message.from_user.username
@@ -75,7 +125,6 @@ def msg_user(message):
         print('Что читаем сегодня ', user_name, user_first_name)
         logging.info(f"Что читаем сегодня: {user_name}, {user_first_name}.")
         today = func.addiction_stat(day = today_date)
-        today = re.sub("[)|(|,)]", "", str(today))
         info = func.msg_plan(day_input=today_date)
         if info == ([]):
             result_msg = bot.send_message(message.from_user.id, 'Что-то пошло не так.\nВсе сломалось? Пишите @utkows')
@@ -161,7 +210,7 @@ def msg_user(message):
         today = re.sub("[)|(|,)]", "", str(today))
         msg = bot.send_message(message.from_user.id, f'Введите порядковый номер дня в формате "1", например сегодня день № *{today}*.', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_day)
-    elif message.text == '✍️ Отметить несколько дней':
+    elif message.text == '✍️ Отметить день':
         msg = bot.send_message(message.from_user.id, f'Введите день, который хотите отметить прочитанным в формате "1"', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_sev_days)
     elif message.text == '✅ Всё прочитано':
@@ -262,8 +311,8 @@ def reading_input(message):
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
-    elif text == '✍️ Отметить несколько дней':
-        print('Отметить несколько дней ', user_name, user_first_name)
+    elif text == '✍️ Отметить день':
+        print('Отметить день ', user_name, user_first_name)
         msg = bot.send_message(message.from_user.id, f'Введите день, который хотите отметить прочитанным в формате "1"', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_sev_days)
     elif text == '✍️ Ввести другой день':
@@ -299,6 +348,7 @@ def reading(message):
         bot.send_message(message.from_user.id, 'Пожалуйста, используйте кнопки!')
         logging.info(f"Введено некорректное значение при отметке прочитанного (авто) {user_name}, {user_first_name}.")
 
+
 def check(message):
     user_id = message.from_user.id
     user_name = message.from_user.username
@@ -321,8 +371,8 @@ def check(message):
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
-    elif text == '✍️ Отметить несколько дней':
-        print('Отметить несколько дней ', user_name, user_first_name)
+    elif text == '✍️ Отметить день':
+        print('Отметить день ', user_name, user_first_name)
         msg = bot.send_message(message.from_user.id, f'Введите день, который хотите отметить прочитанным в формате "1"', parse_mode= "Markdown", reply_markup=kb.back)
         bot.register_next_step_handler(msg, input_sev_days)
     elif text == '✍️ Ввести другой день':
@@ -395,6 +445,7 @@ def delete_check(message):
         func.delete_check(user_id = user_id, delete_day = text)
         bot.send_message(message.from_user.id, f"Отметка о прочтении {text}-го дня удалена", reply_markup=kb.delete_more)
 
+
 # Функция по отправке сообщения ОС
 def quesch(message):
     user_id = message.from_user.id
@@ -409,6 +460,8 @@ def quesch(message):
         bot.send_message(message.chat.id, text=' Ваше сообщение отправляется')
         bot.send_message(info, f'Входящее сообщение!\n\nID: {user_id}\nUsername: @{user_name}\nИмя: {user_first_name}\n\nСообщение: {str(text)}')
         bot.send_message(message.chat.id, text=' Сообщение отправлено!\nПостараемся ответить на него в ближайшее время!', reply_markup=kb.menu)
+
+
 
 
 
@@ -433,10 +486,12 @@ def handler_call(call):
             text = call.message.text
             msg = bot.send_message(chat_id=chat_id, text='Введите ID пользователя. \n\nДля отмены нажми Назад!', reply_markup=kb.back)
             bot.register_next_step_handler(msg, admin_msg_user_id)
+    elif call.data == 'subd':
+        bot.send_document(chat_id=chat_id, document=open('db.db', 'rb'))
 
 def message1(message):
     text = message.text
-    if message.text == 'Назад':
+    if message.text == '🔙 Назад':
             bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
     else:
         info = func.admin_message(text)
@@ -455,7 +510,7 @@ def admin_msg_user_id(message):
     user_name = message.from_user.username
     user_first_name = message.from_user.first_name
     text = message.text
-    if message.text == 'Назад':
+    if message.text == '🔙 Назад':
             bot.send_message(message.chat.id, "Выберите кнопку", reply_markup=kb.menu)
     else:
         global info_user
@@ -470,6 +525,9 @@ def admin_msg_user(message):
     bot.send_message(info_user_id, f'Входящее сообщение!\n\n{str(text)}')
     bot.send_message(message.chat.id, text=' Сообщение отправлено!')
 
+
 # Поддержание работы
 bot.polling(none_stop=True)
 bot.infinity_polling()
+print('Нажми выход еще раз')
+bot.polling()

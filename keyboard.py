@@ -9,6 +9,7 @@ admin.add(
     types.InlineKeyboardButton('Рассылка', callback_data='admin_msg'),
     types.InlineKeyboardButton('Сообщение пользователю', callback_data='admin_msg_user'),
     types.InlineKeyboardButton('Статистика', callback_data='statistics'),
+    types.InlineKeyboardButton('Выгрузка БД', callback_data='subd'),
     types.InlineKeyboardButton('Логи', callback_data='logging')
 )
 
@@ -77,7 +78,7 @@ input_day.add(
 
 check = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 check.add(
-    types.InlineKeyboardButton('✍️ Отметить несколько дней', callback_data='input_day'), 
+    types.InlineKeyboardButton('✍️ Отметить день', callback_data='input_day'), 
     types.InlineKeyboardButton('✅ Всё прочитано', callback_data='check_all_days'),
     types.InlineKeyboardButton('🔙 Назад', callback_data='back'),
     types.InlineKeyboardButton('❌ Удалить отметку о прочтении', callback_data='input_day')
@@ -93,4 +94,9 @@ delete_more = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 delete_more.add(
     types.InlineKeyboardButton('❌ Удалить другой день', callback_data='input_day'), 
     types.InlineKeyboardButton('🔙 Назад', callback_data='back')
+)
+
+inline_read = types.InlineKeyboardMarkup(row_width=1)
+inline_read.add(
+    types.InlineKeyboardButton('✅ Прочитано!', callback_data='inline_read')
 )
