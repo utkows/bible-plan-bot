@@ -53,7 +53,9 @@ def get_text_message(message):
     bot.send_message(message.from_user.id, '👋 Здравствуйте!\nЭто бот Нижегородской Библейской Церкви для чтения Библии по плану.\n\n❗️Вначале рекомендуем ознакомиться с инструкцией по [ссылке](https://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10)', parse_mode= "Markdown", reply_markup=kb.menu)
     logging.info(f"Новый пользователь успешно добавлен в БД: {username}, {user_first_name}.")
 
-# Функция автоотправки ежедневных напоминаний
+
+
+# Функция автоотправки ежедневных напоминаний с функцией удаления инлайн-кнопки у предыдущего напоминания каждого пользователя и чисткой id в бд
 def whats_read_evday():
     print('Ежедневные напоминания запущены')
     tconv = time.strftime("%d.%m.%Y")
@@ -62,9 +64,24 @@ def whats_read_evday():
     info_msg = func.msg_plan(day_input=today_date)
     users = func.admin_message()
     for i in range(len(users)):
+        rem_select = func.reminder_select(user_id = users[i][0])
+        try:
+            # print("MAIN получены id сообщений для удаления", rem_select)
+            for m in range(len(rem_select)):
+                try:
+                    time.sleep(1)
+                    func.reminder_delete(user_id = users[i][0], message_id = rem_select[m][0])
+                    bot.edit_message_reply_markup(users[i][0], message_id = rem_select[m][0], reply_markup = '')
+                except:
+                    pass
+        except:
+                pass
         try:
             time.sleep(1)
-            bot.send_message(users[i][0], f'☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{inline_today}*\n\n📖 Читаем *{info_msg}*', parse_mode= "Markdown", reply_markup=kb.inline_read)
+            msg = bot.send_message(users[i][0], f'☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{inline_today}*\n\n📖 Читаем *{info_msg}*', parse_mode= "Markdown", reply_markup=kb.inline_read)
+            message_id = msg.message_id
+            # print('MAIN ID отправленных сообщений ', message_id)
+            func.reminder_add(user_id = users[i][0], message_id = message_id)
         except:
             pass
     print('Ежедневные напоминания отправлены')
@@ -88,6 +105,8 @@ def inline_reading(check):
     logging.info(f"Отметка о прочтении (инлайн) {user_name}, {user_first_name}.")
     info_msg = func.msg_plan(day_input=today_date)
     func.reading(user_id = user_id)
+    rem_select = func.reminder_select(user_id = user_id)
+    func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
     bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
 
 
@@ -112,13 +131,16 @@ def start(message: types.Message):
 # Запрос, что читаем сегодня, отчет о прочитанных днях
 @bot.message_handler(content_types=['text'])
 def msg_user(message):
-    try:
-        bot.edit_message_reply_markup(message.chat.id, message_id = message.message_id-1, reply_markup = '')
-    except:
-        pass
     user_id = message.from_user.id
     user_first_name = message.from_user.first_name
     user_name = message.from_user.username
+    # Цикл удаления инлайн-кнопки у автосообщения и id из бд
+    rem_select = func.reminder_select(user_id = user_id)
+    try:
+        bot.edit_message_reply_markup(message.chat.id, message_id = rem_select, reply_markup = '')
+        func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
+    except:
+        pass
     if message.text == '🎁 Что читаем сегодня?':
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today_date = tconv(message.date)
@@ -161,9 +183,9 @@ def msg_user(message):
         # print('MAIN опережение на ', count_res)
         if count_res < '0' == stat_read_len:
             count_res = re.sub("[-]", "", count_res)
-            bot.send_message(message.from_user.id, f'Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
+            bot.send_message(message.from_user.id, f'📈 Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
         elif stat_read_len == '0':
-                bot.send_message(message.from_user.id, '*Все по плану! 🎇*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
+                bot.send_message(message.from_user.id, '*🎇 Все по плану!*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
         else:
             count_stat = stat_read
             count_day = 0
@@ -173,14 +195,14 @@ def msg_user(message):
             # print('MAIN количество пропущенных дней ', count_day)
             if count_day < 8:
                 logging.info(f"MAIN сформирован список пропущенных дней: {stat_read_full}, для {user_name}, {user_first_name}.")
-                bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read_full}\n\nВы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
+                bot.send_message(message.from_user.id, f'📉 *Вы пропустили дни №:*\n\n{stat_read_full}\n\n⏳ Вы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
                 msg = bot.send_message(message.from_user.id, 'Чтобы отметить пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.check)
                 bot.register_next_step_handler(msg, reading_input)
             else:
                 stat_read_msg = ', '.join([f'{stat_read_msg}' for stat_read_msg in stat_read])
                 logging.info(f"MAIN сформирован список пропущенных дней: {stat_read_msg}, для {user_name}, {user_first_name}.")
                 stat_read_msg = stat_read_msg[:0][:1] + stat_read_msg[(2):]
-                bot.send_message(message.from_user.id, f'*Вы пропустили дни №:*\n\n{stat_read_msg}\n\nВы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
+                bot.send_message(message.from_user.id, f'📉 *Вы пропустили дни №:*\n\n{stat_read_msg}\n\n⏳ Вы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
                 bot.send_message(message.from_user.id, 'Чтобы посмотреть что нужно прочитать в эти пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.statistics)
     elif message.text == '🗞 Показать все прочитанные дни':
         print('Список прочитанного ', user_name, user_first_name)

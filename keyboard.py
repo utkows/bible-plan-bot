@@ -98,5 +98,5 @@ delete_more.add(
 
 inline_read = types.InlineKeyboardMarkup(row_width=1)
 inline_read.add(
-    types.InlineKeyboardButton('✅ Прочитано!', callback_data='inline_read')
+    types.InlineKeyboardButton('👌 Я прочитал!', callback_data='inline_read')
 )

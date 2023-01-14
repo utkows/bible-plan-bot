@@ -46,6 +46,39 @@ def stats():
     return msg
     conn.close()
 
+# -------------------------------------------------------------
+# Функции добавления, поиска и удаления id сообщений с автонапоминаниями
+def reminder_add(user_id, message_id):
+    connection = sqlite3.connect(db)
+    q = connection.cursor()
+    q = q.execute(f'SELECT * FROM reminder WHERE user_id = {user_id} AND msg_id = {message_id}')
+    row = q.fetchone()
+    if row is None:
+        q.execute("INSERT INTO reminder (user_id,  msg_id) VALUES ('%s', '%s')"%(user_id,message_id))
+        connection.commit()
+    connection.close()
+
+def reminder_select(user_id):
+    conn = sqlite3.connect(db)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f'SELECT msg_id FROM reminder WHERE user_id = "{user_id}"')
+        row = cursor.fetchall()
+        # print('FUNC id в таблице получены ', row)
+        return row
+    except:
+        pass
+    conn.close()
+
+def reminder_delete(user_id, message_id):
+    conn = sqlite3.connect(db)
+    q = conn.cursor()
+    q.execute(f"DELETE FROM reminder WHERE msg_id = '{message_id}' AND user_id = {user_id}")
+    conn.commit()
+    # logging.info(f"FUNC данные о прочтении записаны {user_id}, {stat_read}.")
+    conn.close()
+# -------------------------------------------------------------
+
 
 def msg_plan(day_input):
     # print('FUNC дата получена ', day_input)
@@ -56,10 +89,6 @@ def msg_plan(day_input):
     # print('FUNC данные в таблице получены ', row)
     return row
     conn.close()
-
-
-
-
 
 
 def user_input(value):
