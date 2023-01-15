@@ -106,7 +106,10 @@ def inline_reading(check):
     info_msg = func.msg_plan(day_input=today_date)
     func.reading(user_id = user_id)
     rem_select = func.reminder_select(user_id = user_id)
-    func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
+    try:
+        func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
+    except:
+        pass
     bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
 
 
