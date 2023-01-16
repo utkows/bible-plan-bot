@@ -100,3 +100,12 @@ inline_read = types.InlineKeyboardMarkup(row_width=1)
 inline_read.add(
     types.InlineKeyboardButton('👌 Я прочитал!', callback_data='inline_read')
 )
+
+
+today_verify = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+check_ver = types.InlineKeyboardButton('✅ Прочитано!', callback_data='input_day')
+del_check_ver = types.InlineKeyboardButton('❌ Удалить отметку о прочтении', callback_data='input_day')
+back_ver = types.InlineKeyboardButton('🔙 Назад', callback_data='back')
+today_verify.add(check_ver)
+today_verify.add(back_ver, del_check_ver)
+

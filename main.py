@@ -194,7 +194,8 @@ def msg_user(message):
                 today_date = tconv(message.date)
                 today = func.addiction_stat(day = today_date)
                 info = func.msg_plan(day_input=today_date)
-                bot.send_message(message.from_user.id, f'*🎇 Все по плану!*\n\n⚡️ Не забудьте почитать сегодня:  *{info}*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
+                msg = bot.send_message(message.from_user.id, f'*🎇 Все по плану!*\n\n⚡️ Не забудьте почитать сегодня:  *{info}*', parse_mode= "Markdown", reply_markup=kb.today_verify)
+                bot.register_next_step_handler(msg, reading_input_verify)
             else:
                 bot.send_message(message.from_user.id, '*🎇 Все по плану!*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
         else:
@@ -309,6 +310,33 @@ def input_day(message):
                 bot.register_next_step_handler(msg, reading_input)
     else:
         bot.send_message(message.from_user.id, 'Пожалуйста, введите значение!', reply_markup=kb.statistics)
+
+
+def reading_input_verify(message):
+    user_id = message.from_user.id
+    user_name = message.from_user.username
+    user_first_name = message.from_user.first_name
+    text = message.text
+    if text == "✅ Прочитано!":
+        tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
+        today_date = tconv(message.date)
+        print('Отметка о прочтении (авто) ', user_name, user_first_name)
+        logging.info(f"Отметка о прочтении (авто) {user_name}, {user_first_name}.")
+        func.addiction_stat(day = today_date)
+        func.reading(user_id = user_id)
+        bot.send_message(message.from_user.id, 'Отлично! 🎉', reply_markup=kb.menu)
+    elif message.text == '❌ Удалить отметку о прочтении':
+        print('Удалить отметку о прочтении ', user_name, user_first_name)
+        logging.info(f"Удалить отметку о прочтении {user_name}, {user_first_name}.")
+        msg = bot.send_message(message.chat.id, "Введите день с которого нужно удалить отметку о прочтении", reply_markup=kb.back)
+        bot.register_next_step_handler(msg, delete_check)
+    elif text == '🔙 Назад':
+        bot.send_message(message.from_user.id, "Выберите кнопку", reply_markup=kb.menu)
+    else:
+        bot.send_message(message.from_user.id, 'Пожалуйста, используйте кнопки!')
+        logging.info(f"Введено некорректное значение при отметке прочитанного (авто) {user_name}, {user_first_name}.")
+
+
 
 # Функция отметка о прочтении введенного вручную дня (с отображением плана)
 def reading_input(message):
