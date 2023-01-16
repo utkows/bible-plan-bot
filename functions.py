@@ -173,7 +173,7 @@ def stat_reading(today, text):
         text_clear += list_text
     # print('FUNC список прочитанных дней отформатирован в список ', text_clear)
     # print('FUNC получен номер дня', today)
-    generate_days = sorted(map(str, range(0,int(today)+1)))
+    generate_days = sorted(map(str, range(0,int(today))))
     # print('FUNC строки сгенерированных дней ', generate_days)
     gen_clear = sorted(list(map(int, generate_days)))
     # print('FUNC строки сгенерированных дней преобразованы в список', gen_clear)
@@ -204,6 +204,16 @@ def stat_read_full(stat_read):
     # print('FUNC конец вывода ', stat_read_full_msg)
     return stat_read_full_msg
     conn.close()
+
+def today_verify(user_id, today):
+    try:
+        conn = sqlite3.connect(db)
+        q = conn.cursor()
+        q = q.execute(f'SELECT day FROM reading WHERE day = "{today}" AND user_id = "{user_id}"')
+        row_today_ver = q.fetchone()[0]
+        return row_today_ver
+    except:
+        pass
 
 
 def check_all(user_id, stat_read):

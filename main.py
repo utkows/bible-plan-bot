@@ -176,18 +176,26 @@ def msg_user(message):
         stat_read_full = func.stat_read_full(stat_read)
         bot.send_message(message.chat.id, f"Сегодня {today_date}, *день № {today}*", parse_mode= "Markdown")
         stat_read_len = str(len(stat_read)-1)
-        count_stat = res_msg_reading
+        count_stat = str(len(res_msg_reading))
         # print('MAIN количество пропущенных дней ', stat_read_len)
-        count_day = 0
-        for item in count_stat:
-            if item != 0:
-                count_day += 1
-        count_res = str(int(today) - count_day)
+        # print('MAIN количество прочитанных дней ', count_stat)
+        today_verify = func.today_verify(user_id, today)
+        # print('today_verify ', today_verify)
+        # print('today ', today)
+        count_res = str(int(today) - int(count_stat))
         # print('MAIN опережение на ', count_res)
-        if count_res < '0' == stat_read_len:
+        if int(today) - int(stat_read_len) == int(today) and count_res < '0' and str(today_verify) == str(today):
             count_res = re.sub("[-]", "", count_res)
             bot.send_message(message.from_user.id, f'📈 Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
         elif stat_read_len == '0':
+            today_verify = func.today_verify(user_id, today)
+            if today_verify is None:
+                tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
+                today_date = tconv(message.date)
+                today = func.addiction_stat(day = today_date)
+                info = func.msg_plan(day_input=today_date)
+                bot.send_message(message.from_user.id, f'*🎇 Все по плану!*\n\n⚡️ Не забудьте почитать сегодня:  *{info}*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
+            else:
                 bot.send_message(message.from_user.id, '*🎇 Все по плану!*', parse_mode= "Markdown", reply_markup=kb.input_read_all_list)
         else:
             count_stat = stat_read
@@ -249,7 +257,7 @@ def msg_user(message):
         res_msg_reading_len = str(len(stat_read))
         # print('MAIN пропущенных дней', res_msg_reading_len)
         if int(res_msg_reading_len) > 1:
-            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
+            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
@@ -332,7 +340,7 @@ def reading_input(message):
         print('Всё прочитано ', user_name, user_first_name)
         logging.info(f"Всё прочитано {user_name}, {user_first_name}.")
         if int(res_msg_reading_len) > 1:
-            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
+            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
@@ -392,7 +400,7 @@ def check(message):
     if text == '✅ Всё прочитано':
         print('Всё прочитано ', user_name, user_first_name)
         if int(res_msg_reading_len) > 1:
-            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные, в том числе и *сегодняшний*.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
+            msg = bot.send_message(message.from_user.id, f'❗️ *Внимание!*\nПосле выполнения этого действия все пропущенные дни будут отмечены как прочитанные.\nВы уверены что хотите это сделать?', parse_mode= "Markdown", reply_markup=kb.yes_no)
             bot.register_next_step_handler(msg, check_all)
         else:
             bot.send_message(message.chat.id, "Нет непрочитанных дней!", parse_mode= "Markdown", reply_markup=kb.menu)
@@ -554,5 +562,5 @@ def admin_msg_user(message):
 # Поддержание работы
 bot.polling(none_stop=True)
 bot.infinity_polling()
-print('Нажми выход еще раз')
-bot.polling()
+# print('Нажми выход еще раз')
+# bot.polling()
