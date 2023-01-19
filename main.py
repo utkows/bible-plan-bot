@@ -20,6 +20,7 @@ import codecs
 import re
 from collections import Counter
 import numpy as np
+import random
 import logging
 from threading import Thread
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -110,7 +111,7 @@ def inline_reading(check):
         func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
     except:
         pass
-    bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
+    bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано", parse_mode= "Markdown", reply_markup=None)
 
 
 
@@ -519,7 +520,7 @@ def quesch(message):
         logging.info(f"Отправка сообщения от {user_name}, {user_first_name}.")
         info = admin
         bot.send_message(message.chat.id, text=' Ваше сообщение отправляется')
-        bot.send_message(info, f'Входящее сообщение!\n\nID: {user_id}\nUsername: @{user_name}\nИмя: {user_first_name}\n\nСообщение: {str(text)}')
+        bot.send_message(info, f'Входящее сообщение!\n\nID: `{user_id}`\nUsername: @{user_name}\nИмя: {user_first_name}\n\nСообщение: {str(text)}', parse_mode= "Markdown")
         bot.send_message(message.chat.id, text=' Сообщение отправлено!\nПостараемся ответить на него в ближайшее время!', reply_markup=kb.menu)
 
 
