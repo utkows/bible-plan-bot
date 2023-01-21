@@ -1,6 +1,7 @@
 from telebot import types
 import sqlite3
 import random
+import random_elem as stic_list
 
 
 # import functions as func
@@ -16,9 +17,11 @@ admin.add(
 
 menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 whats_read = types.InlineKeyboardButton('🎁 Что читаем сегодня?', callback_data='whats_read')
+# whats_read_week = types.InlineKeyboardButton('📆 Что читаем на этой неделе?', callback_data='whats_read_week')
 stat = types.InlineKeyboardButton('📊 Отчет', callback_data='reading')
 help = types.InlineKeyboardButton('🆘 Помощь', callback_data='help')
 menu.add(whats_read)
+# menu.add(whats_read_week)
 menu.add(stat, help)
 
 
@@ -46,8 +49,7 @@ input_read_advance = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True
 input_read_advance.add(
     types.InlineKeyboardButton('✍️ Ввести номер дня', callback_data='input_day'),
     types.InlineKeyboardButton('🗞 Показать все прочитанные дни', callback_data='input_day_advance'),
-    types.InlineKeyboardButton('🔙 Назад', callback_data='back'),
-    types.InlineKeyboardButton('❌ Удалить отметку о прочтении', callback_data='input_day')
+    types.InlineKeyboardButton('🔙 Назад', callback_data='back')
 )
 
 yes_no = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
@@ -82,12 +84,25 @@ check.add(
     types.InlineKeyboardButton('✍️ Отметить день', callback_data='input_day'), 
     types.InlineKeyboardButton('✅ Всё прочитано', callback_data='check_all_days'),
     types.InlineKeyboardButton('🔙 Назад', callback_data='back'),
+)
+
+check_lag = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+check_lag.add(
+    types.InlineKeyboardButton('✍️ Отметить день', callback_data='input_day'), 
+    types.InlineKeyboardButton('✅ Всё прочитано', callback_data='check_all_days'),
+    types.InlineKeyboardButton('🔙 Назад', callback_data='back'),
     types.InlineKeyboardButton('❌ Удалить отметку о прочтении', callback_data='input_day')
 )
 
 check_day = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 check_day.add(
     types.InlineKeyboardButton('✍️ Ввести другой день', callback_data='input_day'), 
+    types.InlineKeyboardButton('🔙 Назад', callback_data='back')
+)
+
+check__sev_day = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+check__sev_day.add(
+    types.InlineKeyboardButton('✍️ Отметить другой день', callback_data='input_day'), 
     types.InlineKeyboardButton('🔙 Назад', callback_data='back')
 )
 
@@ -98,8 +113,7 @@ delete_more.add(
 )
 
 
-stic_list = ['🫡','🦾','🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐣','🐳','🐋','🐙','🦋','🐴','🐧','🕊','🌿','☘️','🪴','🌊','🎯','🎆','🌄','🌅','🗾','🌆','🏙','🌇','🌃','🌉','📙','📕','📔','📌','❤️','💛','📖','📚','🔔','💬','🖋','🎁','🎈','🎀','🎊','🪄','💎','💡','🕯','🐝','🦉','🐞']
-stic = random.choice(stic_list)
+stic = random.choice(stic_list.stic_list)
 inline_read = types.InlineKeyboardMarkup(row_width=1)
 inline_read.add(
     types.InlineKeyboardButton(f'{stic} Прочитано', callback_data='inline_read')
