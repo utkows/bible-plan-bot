@@ -235,7 +235,7 @@ def delete_check(user_id, delete_day):
     # logging.info(f"FUNC данные о прочтении записаны {user_id}, {stat_read}.")
     conn.close()
 
-# # Функция Что читаем на этой неделе
+# Функция Что читаем на этой неделе
 # def whats_read_week_btn(today):
 #     # print('FUNC день ', today)
 #     conn = sqlite3.connect(db)
@@ -245,58 +245,15 @@ def delete_check(user_id, delete_day):
 #     # print('FUNC дни недели ', week_days)
 #     week_days_list = sorted(list(map(int, week_days)))
 #     # print('FUNC дни недели ', week_days_list)
-#     week_d = ['пн','вт','ср','чт','пт','сб','вс']
 #     week_days_list_full = []
-#     cnt = 0
 #     for i in week_days_list:
 #         q = q.execute(f'SELECT read FROM plan WHERE numbers = {i}')
 #         week_day_bd = q.fetchall()[0][0]
 #         week_days_list_full += [str('\n'.join([f'{i} - {week_day_bd}']))]
 #         # print(week_days_list_full)
 #         week_days_list_full_msg = '\n'.join(week_days_list_full)
-#         print(week_days_list_full_msg)
 #     return week_days_list_full_msg
 #     conn.close()
-
-
-# Функция Что читаем на этой неделе
-def whats_read_week_btn(today):
-    # print('FUNC день ', today)
-    conn = sqlite3.connect(db)
-    q = conn.cursor()
-    q = q.execute(f'SELECT * FROM weeks WHERE {today} IN (num_1, num_2, num_3, num_4, num_5, num_6, num_7)')
-    week_days = q.fetchall()[0]
-    # print('FUNC дни недели ', week_days)
-    week_days_list = sorted(list(map(int, week_days)))
-    # print('FUNC дни недели ', week_days_list)
-    week_d = ['пн','вт','ср','чт','пт','сб','вс']
-    week_days_list_full = []
-    cnt = 0
-    for i in week_days_list:
-        q = q.execute(f'SELECT read FROM plan WHERE numbers = {i}')
-        week_day_bd = q.fetchall()[0][0]
-        
-        # --------------------
-        # выводим день недели
-        # попробую показать без join, мне так проще
-        week_days_list_full += week_d[cnt] # в следующий раз будет вт, потом ср и т.д.
-        cnt += 1 
-        # week_days_list_full = ''.join([f'{week_days_list_full} - {week_day_bd}'])
-        # дополнительно добавляем значение из базы
-        # вот здесь я не совсем разбираюсь, поправь меня :-)
-        # но наверно можно без join обойтись
-        # кроме того, \n нужно только один раз, в конце строки т.е. 
-        # после week_days_list_full_msg, а там уже стоит
-        week_days_list_full += f'{i} - {week_day_bd}'
-
-        # week_days_list_full += [str('\n'.join([f'{i} - {week_day_bd}']))]
-        #----------------------
-        
-        # print(week_days_list_full)
-    week_days_list_full_msg = '\n'.join(week_days_list_full)
-    print(week_days_list_full_msg)
-    return week_days_list_full_msg
-    conn.close()
 
 
 
