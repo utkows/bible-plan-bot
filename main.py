@@ -9,7 +9,7 @@ import config as config
 import functions as func
 import random_elem as stic_list
 import random
-from config import db, TOKEN
+from config import db, TOKEN, HOST, PORT, URL
 import codecs
 import re
 from collections import Counter
@@ -17,7 +17,10 @@ import numpy as np
 import logging
 from threading import Thread
 from apscheduler.schedulers.background import BackgroundScheduler
+from flask_apscheduler import APScheduler
 from tzlocal import get_localzone
+import flask
+import os
 
 
 bot = telebot.TeleBot(TOKEN)
@@ -31,6 +34,8 @@ markdown = """
 
 logging.basicConfig(level=logging.INFO, filename="log.log",
                     format="%(asctime)s %(levelname)s %(message)s", filemode="w", encoding = "UTF-8")
+
+
 
 print('Бот запущен')
 
@@ -46,8 +51,6 @@ def get_text_message(message):
     func.first_join(user_id=chat_id, username=username)
     bot.send_message(message.from_user.id, '👋 Здравствуйте!\nЭто бот Нижегородской Библейской Церкви для чтения Библии по плану.\n\n❗️Вначале рекомендуем ознакомиться с инструкцией по [ссылке](https://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10)', parse_mode= "Markdown", reply_markup=kb.menu)
     logging.info(f"Новый пользователь успешно добавлен в БД: {username}, {user_first_name}.")
-
-
 
 # Функция автоотправки ежедневных напоминаний с функцией удаления инлайн-кнопки у предыдущего напоминания каждого пользователя и чисткой id в бд
 def whats_read_evday():
@@ -83,7 +86,7 @@ def whats_read_evday():
 # Параметры расписания
 tz = get_localzone()
 scheduler = BackgroundScheduler(timezone=tz)
-scheduler.add_job(whats_read_evday, 'cron', hour='6', minute='0')
+scheduler.add_job(whats_read_evday, 'cron', hour='22', minute='22')
 scheduler.start()
 
 # Отметка о прочтении inline
@@ -262,18 +265,26 @@ def statistics_btn(message):
         print('Помощь ', user_name, user_first_name)
         logging.info(f"Помощь {user_name}, {user_first_name}.")
         bot.send_message(message.chat.id, f'Ответы на самые частые вопросы вы сможете найти по [ссылке](https://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10)', parse_mode= "Markdown")
-        bot.send_message(message.chat.id, f'Если вашего вопроса нет в списке, или у вас есть предложение по улучшению бота, напишите сообщение, нажав кнопку внизу 👇', parse_mode= "Markdown", reply_markup=kb.quesch)
+        msg = bot.send_message(message.chat.id, f'Если вашего вопроса нет в списке, или у вас есть предложение по улучшению бота, напишите сообщение, нажав кнопку внизу 👇', parse_mode= "Markdown", reply_markup=kb.quesch)
+        bot.register_next_step_handler(msg, quesch_msg)
     else:
         logging.info(f"Ошибка, некорректное значение при вводе в гл.меню {user_name}, {user_first_name}.")
         bot.send_message(message.chat.id, "Пожалуйста, воспользуйтесь кнопками!", reply_markup=kb.menu)
 
 @bot.message_handler(func=lambda message: message.text == '🔙 Назад')
 def back(message):
+    # Цикл удаления инлайн-кнопки у автосообщения и id из бд
     user_id = message.from_user.id
     user_first_name = message.from_user.first_name
     user_name = message.from_user.username
     generate_alldays = sorted(map(str, range(1, 365+1)))
     text = message.text
+    rem_select = func.reminder_select(user_id = user_id)
+    try:
+        bot.edit_message_reply_markup(message.chat.id, message_id = rem_select, reply_markup = '')
+        func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
+    except:
+        pass
     if text == '🔙 Назад':
         bot.send_message(message.from_user.id, "Вы в главном меню", reply_markup=kb.menu)
     else:
@@ -689,7 +700,7 @@ def check_all_lag(message):
         print('Отметка о прочтении (все дни) ', user_name, user_first_name)
         logging.info(f"Отметка о прочтении (все дни) {user_name}, {user_first_name}.")
         read_data = func.whats_read(user_id = user_id)
-        print('MAIN получен список прочитанного ', read_data)
+        # print('MAIN получен список прочитанного ', read_data)
         tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
         today = tconv(message.date)
         today = func.addiction_stat(day = today)
@@ -909,6 +920,20 @@ def reading(message):
         bot.send_message(message.from_user.id, 'Пожалуйста, используйте кнопки!')
         logging.info(f"Введено некорректное значение при отметке прочитанного (авто) {user_name}, {user_first_name}.")
 
+def quesch_msg(message):
+    user_id = message.from_user.id
+    user_name = message.from_user.username
+    user_first_name = message.from_user.first_name
+    text = message.text
+    if message.text == '🔙 Назад':
+        bot.send_message(message.chat.id, "Вы в главном меню", reply_markup=kb.menu)
+    elif text == '✉️ Отправить сообщение':
+        logging.info(f"Отправить сообщение {user_name}, {user_first_name}.")
+        msg = bot.send_message(message.chat.id, "Пожалуйста, введите ваше сообщение", reply_markup=kb.back)
+        bot.register_next_step_handler(msg, quesch)
+    else:
+        bot.send_message(message.from_user.id, 'Пожалуйста, используйте кнопки!', reply_markup=kb.menu)
+
 
 # Функция по отправке сообщения ОС
 def quesch(message):
@@ -922,7 +947,7 @@ def quesch(message):
         logging.info(f"Отправка сообщения от {user_name}, {user_first_name}.")
         info = admin
         bot.send_message(message.chat.id, text=' Ваше сообщение отправляется')
-        bot.send_message(info, f'Входящее сообщение!\n\nID: {user_id}\nUsername: @{user_name}\nИмя: {user_first_name}\n\nСообщение: {str(text)}')
+        bot.send_message(info, f'Входящее сообщение!\n\nID: `{user_id}`\nUsername: @{user_name}\nИмя: {user_first_name}\n\nСообщение: {str(text)}', parse_mode= "Markdown")
         bot.send_message(message.chat.id, text=' Сообщение отправлено!\nПостараемся ответить на него в ближайшее время!', reply_markup=kb.menu)
 
 
@@ -990,8 +1015,36 @@ def admin_msg_user(message):
     bot.send_message(message.chat.id, text=' Сообщение отправлено!')
 
 
-# Поддержание работы
-bot.polling(none_stop=True)
-bot.infinity_polling()
-# print('Нажми выход еще раз')
-# bot.polling()
+
+
+app = flask.Flask(__name__)
+
+@app.route('/', methods=['POST'])
+def webhook():
+    if flask.request.headers.get('content-type') == 'application/json':
+        json_string = flask.request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+    else:
+        flask.abort(403)
+
+if __name__ == '__main__':
+    bot.remove_webhook()
+    time.sleep(1)
+    bot.set_webhook(url = URL)
+    app.run(host = HOST, port = PORT, debug = False)
+
+
+
+# scheduler = APScheduler()
+# if __name__ == '__main__':
+#     if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+#         scheduler.add_job(id ='whats_read_evday', func = whats_read_evday, trigger = 'cron', hour = 22, minute = 13, second = 0)
+#         scheduler.start()
+
+# # Поддержание работы
+# bot.polling(none_stop=True)
+# bot.infinity_polling()
+# # print('Нажми выход еще раз')
+# # bot.polling()
