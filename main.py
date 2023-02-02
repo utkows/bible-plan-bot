@@ -86,7 +86,7 @@ def whats_read_evday():
 # Параметры расписания
 tz = get_localzone()
 scheduler = BackgroundScheduler(timezone=tz)
-scheduler.add_job(whats_read_evday, 'cron', hour='22', minute='22')
+scheduler.add_job(whats_read_evday, 'cron', hour='6', minute='0')
 scheduler.start()
 
 # Отметка о прочтении inline
