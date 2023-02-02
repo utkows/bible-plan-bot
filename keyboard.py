@@ -17,11 +17,11 @@ admin.add(
 
 menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 whats_read = types.InlineKeyboardButton('🎁 Что читаем сегодня?', callback_data='whats_read')
-# whats_read_week = types.InlineKeyboardButton('📆 Что читаем на этой неделе?', callback_data='whats_read_week')
+whats_read_week = types.InlineKeyboardButton('📆 Что читаем на этой неделе?', callback_data='whats_read_week')
 stat = types.InlineKeyboardButton('📊 Отчет', callback_data='reading')
 help = types.InlineKeyboardButton('🆘 Помощь', callback_data='help')
 menu.add(whats_read)
-# menu.add(whats_read_week)
+menu.add(whats_read_week)
 menu.add(stat, help)
 
 

@@ -274,29 +274,14 @@ def whats_read_week_btn(today):
     cnt = 0
     for i in week_days_list:
         q = q.execute(f'SELECT read FROM plan WHERE numbers = {i}')
-        week_day_bd = q.fetchall()[0][0]
-        
-        # --------------------
-        # выводим день недели
-        # попробую показать без join, мне так проще
-        week_days_list_full += week_d[cnt] # в следующий раз будет вт, потом ср и т.д.
+        week_day_bd = q.fetchall()[0][0]        
+        # print('FUNC вывод из бд ', week_day_bd)
+        day = '\n'.join([f'`{week_d[cnt]}` - {week_day_bd}'])
         cnt += 1 
-        # week_days_list_full = ''.join([f'{week_days_list_full} - {week_day_bd}'])
-        # дополнительно добавляем значение из базы
-        # вот здесь я не совсем разбираюсь, поправь меня :-)
-        # но наверно можно без join обойтись
-        # кроме того, \n нужно только один раз, в конце строки т.е. 
-        # после week_days_list_full_msg, а там уже стоит
-        week_days_list_full += f'{i} - {week_day_bd}'
-
-        # week_days_list_full += [str('\n'.join([f'{i} - {week_day_bd}']))]
-        #----------------------
-        
-        # print(week_days_list_full)
-    week_days_list_full_msg = '\n'.join(week_days_list_full)
-    print(week_days_list_full_msg)
+        week_days_list_full.append(day)
+        week_days_list_full_msg = '\n'.join(week_days_list_full)
     return week_days_list_full_msg
-    conn.close()
+    
 
 
 

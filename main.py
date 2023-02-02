@@ -20,7 +20,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_apscheduler import APScheduler
 from tzlocal import get_localzone
 import flask
-import os
 
 
 bot = telebot.TeleBot(TOKEN)
@@ -33,7 +32,7 @@ markdown = """
     """
 
 logging.basicConfig(level=logging.INFO, filename="log.log",
-                    format="%(asctime)s %(levelname)s %(message)s", filemode="w", encoding = "UTF-8")
+                    format="%(asctime)s %(levelname)s %(message)s", filemode="a", encoding = "UTF-8")
 
 
 
@@ -105,9 +104,9 @@ def inline_reading(check):
     rem_select = func.reminder_select(user_id = user_id)
     try:
         func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
+        bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
     except:
         pass
-    bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
 
 
 
@@ -160,18 +159,19 @@ def whats_read_btn(message):
         logging.info(f"Ошибка, некорректное значение при вводе в гл.меню {user_name}, {user_first_name}.")
         bot.send_message(message.chat.id, "Пожалуйста, воспользуйтесь кнопками!", reply_markup=kb.menu)
 
-# @bot.message_handler(func=lambda message: message.text == '📆 Что читаем на этой неделе?')
-# def whats_read_week_btn(message):
-#     user_id = message.from_user.id
-#     user_first_name = message.from_user.first_name
-#     user_name = message.from_user.username
-#     tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
-#     today_date = tconv(message.date)
-#     today = func.addiction_stat(day = today_date)
-#     # today = '144'
-#     if message.text == '📆 Что читаем на этой неделе?':
-#         week = func.whats_read_week_btn(today = today)
-#         bot.send_message(message.chat.id, f"🔎 На этой неделе читаем:\n\n`День   |      Отрывок\n_______________________\n{week}`",parse_mode= "Markdown", reply_markup=kb.menu)
+
+@bot.message_handler(func=lambda message: message.text == '📆 Что читаем на этой неделе?')
+def whats_read_week_btn(message):
+    user_id = message.from_user.id
+    user_first_name = message.from_user.first_name
+    user_name = message.from_user.username
+    print('Что читаем на неделе', user_name)
+    tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))
+    today_date = tconv(message.date)
+    today = func.addiction_stat(day = today_date)
+    # today = '144'
+    week = func.whats_read_week_btn(today = today)
+    bot.send_message(message.chat.id, f"🔎 На этой неделе читаем:\n\n{week}",parse_mode= "Markdown", reply_markup=kb.menu)
 
 
 @bot.message_handler(func=lambda message: message.text == '📊 Отчет')
