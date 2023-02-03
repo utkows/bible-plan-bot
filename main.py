@@ -9,7 +9,7 @@ import config as config
 import functions as func
 import random_elem as stic_list
 import random
-from config import db, TOKEN, HOST, PORT, URL
+from config import db, TOKEN, HOST, PORT, URL, channel_adm
 import codecs
 import re
 from collections import Counter
@@ -171,7 +171,7 @@ def whats_read_week_btn(message):
     today = func.addiction_stat(day = today_date)
     # today = '144'
     week = func.whats_read_week_btn(today = today)
-    bot.send_message(message.chat.id, f"🔎 На этой неделе читаем:\n\n{week}",parse_mode= "Markdown", reply_markup=kb.menu)
+    bot.send_message(message.chat.id, f"🔎 На этой неделе читаем:\n\n{week}", parse_mode= "Markdown", reply_markup=kb.menu)
 
 
 @bot.message_handler(func=lambda message: message.text == '📊 Отчет')
@@ -945,7 +945,7 @@ def quesch(message):
             bot.send_message(message.chat.id, "Вы в главном меню", reply_markup=kb.menu)
     else:
         logging.info(f"Отправка сообщения от {user_name}, {user_first_name}.")
-        info = admin
+        info = channel_adm
         bot.send_message(message.chat.id, text=' Ваше сообщение отправляется')
         bot.send_message(info, f'Входящее сообщение!\n\nID: `{user_id}`\nUsername: @{user_name}\nИмя: {user_first_name}\n\nСообщение: {str(text)}', parse_mode= "Markdown")
         bot.send_message(message.chat.id, text=' Сообщение отправлено!\nПостараемся ответить на него в ближайшее время!', reply_markup=kb.menu)
@@ -983,12 +983,13 @@ def message1(message):
     if message.text == '🔙 Назад':
             bot.send_message(message.chat.id, "Вы в главном меню", reply_markup=kb.menu)
     else:
-        info = func.admin_message(text)
+        info = func.admin_message()
         bot.send_message(message.chat.id, text=' Рассылка начата!')
+        cnt = 0
         for i in range(len(info)):
             try:
                 time.sleep(1)
-                bot.send_message(info[i][0], str(text))
+                bot.send_message(info[i][0], f'{str(text)}')
             except:
                 pass
         bot.send_message(message.chat.id, text=' Рассылка завершена!')
@@ -1017,6 +1018,7 @@ def admin_msg_user(message):
 
 
 
+# # Поддержание работы
 app = flask.Flask(__name__)
 
 @app.route('/', methods=['POST'])
@@ -1037,13 +1039,6 @@ if __name__ == '__main__':
 
 
 
-# scheduler = APScheduler()
-# if __name__ == '__main__':
-#     if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-#         scheduler.add_job(id ='whats_read_evday', func = whats_read_evday, trigger = 'cron', hour = 22, minute = 13, second = 0)
-#         scheduler.start()
-
-# # Поддержание работы
 # bot.polling(none_stop=True)
 # bot.infinity_polling()
 # # print('Нажми выход еще раз')
