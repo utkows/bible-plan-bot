@@ -59,6 +59,7 @@ def whats_read_evday():
     inline_today = func.addiction_stat(day = today_date)
     info_msg = func.msg_plan(day_input=today_date)
     users = func.admin_message()
+    cnt = 0
     for i in range(len(users)):
         rem_select = func.reminder_select(user_id = users[i][0])
         try:
@@ -68,6 +69,7 @@ def whats_read_evday():
                     time.sleep(1)
                     func.reminder_delete(user_id = users[i][0], message_id = rem_select[m][0])
                     bot.edit_message_reply_markup(users[i][0], message_id = rem_select[m][0], reply_markup = '')
+                    logging.info(f"Кнопка удалена у {users[i][0]}")
                 except:
                     pass
         except:
@@ -78,9 +80,11 @@ def whats_read_evday():
             message_id = msg.message_id
             # print('MAIN ID отправленных сообщений ', message_id)
             func.reminder_add(user_id = users[i][0], message_id = message_id)
+            cnt += 1
+            logging.info(f"Сообщение отправлено {users[i][0]}")
         except:
             pass
-    print('Ежедневные напоминания отправлены')
+    print(f'Ежедневные напоминания отправлены, активных пользователей {cnt}')
 
 # Параметры расписания
 tz = get_localzone()
