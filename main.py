@@ -112,7 +112,35 @@ def inline_reading(check):
     except:
         pass
 
+# Пуш на удаление инлайн кнопки в 00.00
+def push_del_inline():
+    print('Удаление кнопок запущено')
+    tconv = time.strftime("%d.%m.%Y")
+    today_date = tconv
+    inline_today = func.addiction_stat(day = today_date)
+    info_msg = func.msg_plan(day_input=today_date)
+    users = func.admin_message()
+    cnt = 0
+    for i in range(len(users)):
+        rem_select = func.reminder_select(user_id = users[i][0])
+        # print("MAIN получены id сообщений для удаления", rem_select)
+        try:
+            for m in range(len(rem_select)):
+                try:
+                    func.reminder_delete(user_id = users[i][0], message_id = rem_select[m][0])
+                    bot.edit_message_reply_markup(users[i][0], message_id = rem_select[m][0], reply_markup = '')
+                    logging.info(f"Кнопка удалена у {users[i][0]}")
+                    cnt += 1
+                except:
+                    pass
+        except:
+                pass
+    print(f'Удаление кнопок завершено, удалено {cnt} кнопок')
 
+# Параметры расписания удаления кнопок
+scheduler = BackgroundScheduler(timezone=tz)
+scheduler.add_job(push_del_inline, 'cron', hour='23', minute='59')
+scheduler.start()
 
 
 # Вызов Админ Панели
