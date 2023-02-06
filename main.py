@@ -216,7 +216,16 @@ def statistics_btn(message):
         # print('MAIN опережение на ', count_res)
         if int(today) - int(stat_read_len) == int(today) and count_res < '0' and str(today_verify) == str(today):
             count_res = re.sub("[-]", "", count_res)
-            msg = bot.send_message(message.from_user.id, f'📈 Вы опережаете план на *{count_res}* дней!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
+            for i in stic_list.den:
+                if i == count_res:
+                    day_out = 'день'
+            for i in stic_list.dnya:
+                if i == count_res:
+                    day_out = 'дня'
+            for i in stic_list.dney:
+                if i == count_res:
+                    day_out = 'дней'
+            msg = bot.send_message(message.from_user.id, f'📈 Вы опережаете план на *{count_res}* {day_out}!', parse_mode= "Markdown", reply_markup=kb.input_read_advance)
             bot.register_next_step_handler(msg, advance_out)
         elif stat_read_len == '0':
             today_verify = func.today_verify(user_id, today)
@@ -232,21 +241,40 @@ def statistics_btn(message):
                 bot.register_next_step_handler(msg, input_read_all_list)
         else:
             count_stat = stat_read
-            count_day = 0
-            for i in count_stat:
-                if i != 0:
-                    count_day += 1
+            count_day = str(len(stat_read)-1)
+            # for i in count_stat:
+            #     if i != 0:
+            #         count_day += 1
             # print('MAIN количество пропущенных дней ', count_day)
-            if count_day < 8:
+            if int(count_day) < 8:
+                print(count_day)
                 logging.info(f"MAIN сформирован список пропущенных дней: {stat_read_full}, для {user_name}, {user_first_name}.")
-                bot.send_message(message.from_user.id, f'📉 *Вы пропустили дни №:*\n\n{stat_read_full}\n\n⏳ Вы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
+                for i in stic_list.den:
+                    if i == count_day:
+                        day_out = 'день'
+                for i in stic_list.dnya:
+                    if i == count_day:
+                        day_out = 'дня'
+                for i in stic_list.dney:
+                    if i == count_day:
+                        day_out = 'дней'
+                bot.send_message(message.from_user.id, f'📉 *Вы пропустили дни №:*\n\n{stat_read_full}\n\n⏳ Вы отстаете на *{count_day}* {day_out}.', parse_mode= "Markdown")
                 msg = bot.send_message(message.from_user.id, 'Чтобы отметить пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.check_lag)
                 bot.register_next_step_handler(msg, reading_input_lag)
             else:
                 stat_read_msg = ', '.join([f'{stat_read_msg}' for stat_read_msg in stat_read])
                 logging.info(f"MAIN сформирован список пропущенных дней: {stat_read_msg}, для {user_name}, {user_first_name}.")
                 stat_read_msg = stat_read_msg[:0][:1] + stat_read_msg[(2):]
-                bot.send_message(message.from_user.id, f'📉 *Вы пропустили дни №:*\n\n{stat_read_msg}\n\n⏳ Вы отстаете на *{count_day}* дней.', parse_mode= "Markdown")
+                for i in stic_list.den:
+                    if i == count_day:
+                        day_out = 'день'
+                for i in stic_list.dnya:
+                    if i == count_day:
+                        day_out = 'дня'
+                for i in stic_list.dney:
+                    if i == count_day:
+                        day_out = 'дней'
+                bot.send_message(message.from_user.id, f'📉 *Вы пропустили дни №:*\n\n{stat_read_msg}\n\n⏳ Вы отстаете на *{count_day}* {day_out}.', parse_mode= "Markdown")
                 msg = bot.send_message(message.from_user.id, 'Чтобы посмотреть что нужно прочитать в эти пропущенные дни, нажмите кнопку внизу и введите нужный номер дня из списка выше.', reply_markup=kb.statistics)
                 bot.register_next_step_handler(msg, lag_more_8)
     else:
