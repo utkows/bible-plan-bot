@@ -9,7 +9,7 @@ import config as config
 import functions as func
 import random_elem as stic_list
 import random
-from config import db, TOKEN, HOST, PORT, URL, channel_adm
+from config import db, TOKEN, HOST, PORT, URL, channel_adm, channel_alive
 import codecs
 import re
 from collections import Counter
@@ -39,6 +39,18 @@ logging.basicConfig(level=logging.INFO, filename="log.log",
 print('Бот запущен')
 
 
+# Я жив!
+def imalive():
+    info = channel_alive
+    random_imalive = random.choice(stic_list.imalive)
+    bot.send_message(info, f'{random_imalive}', parse_mode= "Markdown")
+
+# Параметры расписания
+tz = get_localzone()
+scheduler = BackgroundScheduler(timezone=tz)
+scheduler.add_job(imalive, 'interval', hours=1)
+scheduler.start()
+
 
 # Запись в Базу Данных
 @bot.message_handler(commands=['start'])
@@ -50,6 +62,8 @@ def get_text_message(message):
     func.first_join(user_id=chat_id, username=username)
     bot.send_message(message.from_user.id, '👋 Здравствуйте!\nЭто бот Нижегородской Библейской Церкви для чтения Библии по плану.\n\n❗️Вначале рекомендуем ознакомиться с инструкцией по [ссылке](https://telegra.ph/Plan-chteniya-Biblii-NBC-bot-01-10)', parse_mode= "Markdown", reply_markup=kb.menu)
     logging.info(f"Новый пользователь успешно добавлен в БД: {username}, {user_first_name}.")
+
+
 
 # Функция автоотправки ежедневных напоминаний с функцией удаления инлайн-кнопки у предыдущего напоминания каждого пользователя и чисткой id в бд
 def whats_read_evday():
