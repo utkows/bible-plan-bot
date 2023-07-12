@@ -20,6 +20,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_apscheduler import APScheduler
 from tzlocal import get_localzone
 import flask
+import pytz 
+
 
 
 bot = telebot.TeleBot(TOKEN)
@@ -46,7 +48,7 @@ def imalive():
     bot.send_message(info, f'{random_imalive}', parse_mode= "Markdown")
 
 # Параметры расписания
-tz = get_localzone()
+tz = pytz.timezone('Europe/Moscow')
 scheduler = BackgroundScheduler(timezone=tz)
 scheduler.add_job(imalive, 'interval', hours=1)
 scheduler.start()
@@ -101,7 +103,6 @@ def whats_read_evday():
     print(f'Ежедневные напоминания отправлены, активных пользователей {cnt}')
 
 # Параметры расписания
-tz = get_localzone()
 scheduler = BackgroundScheduler(timezone=tz)
 scheduler.add_job(whats_read_evday, 'cron', hour='6', minute='0')
 scheduler.start()
