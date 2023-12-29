@@ -71,6 +71,7 @@ def get_text_message(message):
 def whats_read_evday():
     print('Ежедневные напоминания запущены')
     tconv = time.strftime("%d.%m.%Y")
+    tconvNY = time.strftime("%d.%m")
     today_date = tconv
     inline_today = func.addiction_stat(day = today_date)
     info_msg = func.msg_plan(day_input=today_date)
@@ -91,13 +92,22 @@ def whats_read_evday():
         except:
                 pass
         try:
-            time.sleep(1)
-            msg = bot.send_message(users[i][0], f'☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{inline_today}*\n\n📖 Читаем *{info_msg}*', parse_mode= "Markdown", reply_markup=kb.inline_read)
-            message_id = msg.message_id
-            # print('MAIN ID отправленных сообщений ', message_id)
-            func.reminder_add(user_id = users[i][0], message_id = message_id)
-            cnt += 1
-            logging.info(f"Сообщение отправлено {users[i][0]}")
+            if tconvNY == "31.12":
+                time.sleep(1)
+                msg = bot.send_message(users[i][0], f'🎄 С Новым Годом!\n📆 Сегодня {today_date}, *день №{inline_today}*\n\n📖 Читаем *{info_msg}*', parse_mode= "Markdown", reply_markup=kb.inline_read)
+                message_id = msg.message_id
+                # print('MAIN ID отправленных сообщений ', message_id)
+                func.reminder_add(user_id = users[i][0], message_id = message_id)
+                cnt += 1
+                logging.info(f"Сообщение отправлено {users[i][0]}")
+            else:
+                time.sleep(1)
+                msg = bot.send_message(users[i][0], f'☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{inline_today}*\n\n📖 Читаем *{info_msg}*', parse_mode= "Markdown", reply_markup=kb.inline_read)
+                message_id = msg.message_id
+                # print('MAIN ID отправленных сообщений ', message_id)
+                func.reminder_add(user_id = users[i][0], message_id = message_id)
+                cnt += 1
+                logging.info(f"Сообщение отправлено {users[i][0]}")
         except:
             pass
     print(f'Ежедневные напоминания отправлены, активных пользователей {cnt}')
@@ -114,6 +124,7 @@ def inline_reading(check):
     user_name = check.from_user.username
     user_first_name = check.from_user.first_name
     tconv = time.strftime("%d.%m.%Y")
+    tconvNY = time.strftime("%d.%m")
     today_date = tconv
     today = func.addiction_stat(day = today_date)
     print('Отметка о прочтении (инлайн) ', user_name, user_first_name)
@@ -122,8 +133,12 @@ def inline_reading(check):
     func.reading(user_id = user_id)
     rem_select = func.reminder_select(user_id = user_id)
     try:
-        func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
-        bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
+        if tconvNY == "31.12":
+            func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
+            bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"🎄 С Новым Годом!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None) 
+        else:
+            func.reminder_delete(user_id = user_id, message_id = rem_select[0][0])
+            bot.edit_message_text(chat_id=check.message.chat.id, message_id=check.message.message_id, text=f"☀️ Доброе утро!\n📆 Сегодня {today_date}, *день №{today}*\n\n📖 Читаем *{info_msg}*\n\n✅ Прочитано!", parse_mode= "Markdown", reply_markup=None)
     except:
         pass
 
